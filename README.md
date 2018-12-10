@@ -1,5 +1,3 @@
-[![Build Status](https://semaphoreci.com/api/v1/projects/c9e807e7-e983-4a23-b360-b240d7edf3f1/2087113/badge.svg)](https://semaphoreci.com/crisp/crsae)
-
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 
 CRsAE for CSC
