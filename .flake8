@@ -1,0 +1,24 @@
+[flake8]
+exclude =
+    # No need to traverse our git directory
+    .git,
+    # The notebooks
+    notebooks/,
+
+ignore =
+    # W293: Whitespace on a line
+    W293,
+    # W291: Trailing whitespace
+    W291,
+    # E712: Comparison to True can use ==
+    E712,
+    # E402 module level import not at top of file
+    E402
+    # do not assign a lambda expression, use a def
+    E731
+    # line break before binary operator (this seems not to agree with Black)
+    W503
+    # Do not use variables named 'l', 'o', or 'i'
+    E741
+
+max-line-length = 92
