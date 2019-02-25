@@ -1,5 +1,5 @@
 """
-Copyright (c) 2018 CRISP
+Copyright (c) 2019 CRISP
 
 Plot helpers.
 
@@ -325,20 +325,29 @@ def plot_loss_crsae_vs_sporco(
     num_iter = crsae_loss.shape[0]
     x_values = np.linspace(0, crsae_fit_time, num_iter)
     best_epoch = np.argmin(crsae_loss)
+    best_crsae = crsae_loss[best_epoch]
     plt.plot(x_values, crsae_loss, lw=line_width, color="g")
     # plt.plot(x_values[::k], crsae_loss[::k], "og", lw=line_width)
-    plt.plot(x_values[best_epoch], crsae_loss[best_epoch], "ob", lw=line_width)
+    plt.plot(x_values[best_epoch], crsae_loss[best_epoch], "vb", markersize=marker_size)
+
+    print("crsae:", x_values[best_epoch])
 
     num_iter = sporco_loss.shape[0]
     x_values = np.linspace(0, sporco_fit_time, num_iter)
     best_epoch = np.argmin(sporco_loss)
+    better_epoch = np.where(sporco_loss <= best_crsae)[0][0]
     plt.plot(x_values, sporco_loss, lw=line_width, color="k")
     # plt.plot(x_values[::k], sporco_loss[::k], "vk", lw=line_width)
-    plt.plot(x_values[best_epoch], sporco_loss[best_epoch], "vb", lw=line_width)
+    # plt.plot(x_values[best_epoch], sporco_loss[best_epoch], "vb", lw=line_width)
+    plt.plot(
+        x_values[better_epoch], sporco_loss[better_epoch], "vb", markersize=marker_size
+    )
 
-    plt.ylabel("$\mathrm{l2\;loss}$")
+    print("sporco:", x_values[better_epoch])
+
+    plt.ylabel("$10\log{\|\mathbf{y} - \hat{\mathbf{y}}\|_2}$")
     plt.xlabel("$\mathrm{Time\;[s]}$")
-    # plt.xticks([i for i in range(0, len(x_values) + 5, 5)])
+    plt.xticks([i for i in range(0, 600 + 5, 300)])
     ax.grid("Off")
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
@@ -348,28 +357,40 @@ def plot_loss_crsae_vs_sporco(
     x_values = np.linspace(1, num_iter, num_iter)
     x_lim = [1, num_iter]
     best_epoch = np.argmin(crsae_loss)
+    best_crsae = crsae_loss[best_epoch]
     plt.plot(x_values, crsae_loss, lw=line_width, label="CRsAE", color="g")
     # plt.plot(x_values[::k], crsae_loss[::k], "og", label="CRsAE", lw=line_width)
-    plt.plot(x_values[best_epoch], crsae_loss[best_epoch], "ob", lw=line_width)
+    plt.plot(x_values[best_epoch], crsae_loss[best_epoch], "vb", markersize=marker_size)
+
+    print("crsae:", x_values[best_epoch])
+
     num_iter = sporco_loss.shape[0]
     x_values = np.linspace(1, num_iter, num_iter)
     x_lim = [1, num_iter]
     best_epoch = np.argmin(sporco_loss)
+    better_epoch = np.where(sporco_loss <= best_crsae)[0][0]
     plt.plot(x_values, sporco_loss, lw=line_width, label="Sporco", color="k")
     # plt.plot(x_values[::k], sporco_loss[::k], "vk", label="Sporco", lw=line_width)
-    plt.plot(x_values[best_epoch], sporco_loss[best_epoch], "vb", lw=line_width)
+    # plt.plot(x_values[best_epoch], sporco_loss[best_epoch], "vb", lw=line_width)
+    plt.plot(
+        x_values[better_epoch], sporco_loss[better_epoch], "vb", markersize=marker_size
+    )
 
-    plt.ylabel("$\mathrm{l2\;loss}$")
+    print("sporco:", x_values[better_epoch])
+
+    # plt.ylabel("$\mathrm{l2\;loss}$")
     plt.xlabel("$\mathrm{Iterations}$")
-    plt.xticks([i for i in range(0, len(x_values) + 5, np.int(np.ceil(num_iter / 5)))])
+    plt.xticks([i for i in range(0, len(x_values) + 5, np.int(np.ceil(num_iter / 2)))])
+    plt.yticks([])
     plt.legend(loc="upper right", ncol=1)
     ax.grid("Off")
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
+    ax.spines["left"].set_visible(False)
 
     fig.tight_layout(pad=0.5, w_pad=0.5, h_pad=0)
     plt.savefig(
-        "{}/experiments/{}/reports/loss_crsae_vs_sporco_{}_{}.pdf".format(
+        "{}/experiments/{}/reports/loss_crsae_vs_sporco_{}_{}.eps".format(
             PATH, folder_name, crsae_file_number, sporco_file_number
         )
     )
@@ -606,14 +627,81 @@ def plot_miss_false(
     # plot new fig
     fig = newfig(scale=scale, scale_height=scale_height)
     ax = fig.add_subplot(111)
-    plt.plot(missed_list, false_list, lw=line_width, color="black")
+    if file_number == "kmeans":
+        plt.plot(missed_list, false_list, '.', lw=line_width, color="black")
+    else:
+        plt.plot(missed_list, false_list, lw=line_width, color="black")
     plt.ylabel("$\mathrm{Estimated\;Spikes\;False}$", fontweight="bold")
     if y_lim[1] - y_lim[0] != 0:
         plt.yticks(
             [i for i in np.arange(y_lim[0], y_lim[1], (y_lim[1] - y_lim[0]) / 5)]
         )
     plt.xlabel("$\mathrm{True\;Spikes\;Missed}$", fontweight="bold")
+    if x_lim[1] - x_lim[0] != 0:
+        plt.xticks([i for i in np.arange(x_lim[0], x_lim[1], (x_lim[1] - x_lim[0]) / 5)])
+
+    ax.grid("Off")
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    fig.tight_layout(pad=0.5, w_pad=0.5, h_pad=0)
+    plt.savefig(
+        "{}/experiments/{}/reports/miss_false_{}_{}_{}.pdf".format(
+            PATH, folder_name, file_number, spikes_filter, ch
+        )
+    )
+
+
+def plot_crsae_cbp_miss_false(
+    crsae_missed_list,
+    crsae_false_list,
+    cbp_missed_list,
+    cbp_false_list,
+    PATH,
+    folder_name,
+    file_number,
+    spikes_filter,
+    ch,
+    line_width=2,
+    marker_size=15,
+    scale=1.2,
+    scale_height=1,
+    text_font=20,
+    title_font=20,
+    axes_font=20,
+    legend_font=20,
+    number_font=20,
+):
+    # upadte plot parameters
+    update_plot_parameters(
+        text_font=text_font,
+        title_font=title_font,
+        axes_font=axes_font,
+        legend_font=legend_font,
+        number_font=number_font,
+    )
+
+    x_lim = [0, np.round(np.max(crsae_missed_list))]
+    y_lim = [0, np.round(np.max(crsae_false_list))]
+
+    x_lim = [0, 50]
+    y_lim = [0, 15]
+
+    # plot new fig
+    fig = newfig(scale=scale, scale_height=scale_height)
+    ax = fig.add_subplot(111)
+    plt.plot(crsae_missed_list, crsae_false_list, lw=line_width, color="black", label="CRsAE")
+    plt.plot(cbp_missed_list, cbp_false_list, lw=line_width, color="red", label="CBP")
+    plt.ylabel("$\mathrm{Estimated\;Spikes\;False\;[\%]}$", fontweight="bold")
+    if y_lim[1] - y_lim[0] != 0:
+        plt.yticks(
+            [i for i in np.arange(y_lim[0], y_lim[1], (y_lim[1] - y_lim[0]) / 5)]
+        )
+    plt.xlabel("$\mathrm{True\;Spikes\;Missed\;[\%]}$", fontweight="bold")
     plt.xticks([i for i in np.arange(x_lim[0], x_lim[1], (x_lim[1] - x_lim[0]) / 5)])
+    plt.xlim(x_lim)
+    plt.ylim(y_lim)
+
+    plt.legend()
 
     ax.grid("Off")
     ax.spines["top"].set_visible(False)
@@ -635,11 +723,11 @@ def plot_all_miss_false(
     marker_size=15,
     scale=1.2,
     scale_height=1,
-    text_font=20,
-    title_font=20,
-    axes_font=20,
-    legend_font=20,
-    number_font=20,
+    text_font=50,
+    title_font=50,
+    axes_font=50,
+    legend_font=50,
+    number_font=50,
 ):
     # upadte plot parameters
     update_plot_parameters(
@@ -650,8 +738,8 @@ def plot_all_miss_false(
         number_font=number_font,
     )
 
-    x_lim = [0, 20]
-    y_lim = [0, 20]
+    x_lim = [0, 50]
+    y_lim = [0, 50]
 
     # plot new fig
     fig = newfig(scale=scale, scale_height=scale_height)
@@ -762,6 +850,76 @@ def plot_H_real(
         plt.xticks([i for i in np.arange(x_lim[0], x_lim[1], 0.50)])
         plt.yticks([i for i in np.arange(y_lim[0], y_lim[1], y_fine)])
         plt.ylim([y_lim[0], y_lim[1]])
+        ax.grid("Off")
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        if n != 0:
+            ax.spines["left"].set_visible(False)
+            ax.get_yaxis().set_visible(False)
+        plt.title(
+            "$\mathbf{h_%i}$" % (n + 1), fontname="Times New Roman", fontweight="bold"
+        )
+    plt.legend(loc="upper right", ncol=1)
+    fig.tight_layout(pad=0.5, w_pad=0.5, h_pad=0)
+    plt.savefig(
+        "{}/experiments/{}/reports/H_{}.pdf".format(PATH, folder_name, file_number)
+    )
+
+
+def plot_H_real_2d(
+    H_init,
+    H_learned,
+    PATH,
+    folder_name,
+    file_number,
+    sampling_rate,
+    y_fine=0.1,
+    line_width=2,
+    marker_size=30,
+    scale=4,
+    scale_height=0.5,
+    text_font=45,
+    title_font=55,
+    axes_font=48,
+    legend_font=34,
+    number_font=40,
+):
+
+    # upadte plot parameters
+    update_plot_parameters(
+        text_font=text_font,
+        title_font=title_font,
+        axes_font=axes_font,
+        legend_font=legend_font,
+        number_font=number_font,
+    )
+
+    # plot new fig
+    fig = newfig(scale=scale, scale_height=scale_height)
+
+    num_conv = H_init.shape[3]
+    dictionary_dim = H_init.shape[0]
+
+    y_lim = [0, 0]
+    y_lim[0] = np.round(1.1 * np.min([np.min(H_init), np.min(H_learned)]), 2)
+    y_lim[1] = np.round(1.5 * np.max([np.max(H_init), np.max(H_learned)]), 2)
+
+    k = 4
+    for n in range(num_conv):
+        if (num_conv<=8):
+            ax = fig.add_subplot(1, num_conv, n + 1)
+        elif(num_conv<=16):
+            ax = fig.add_subplot(2, 8, n + 1)
+        elif(num_conv<=32):
+            ax = fig.add_subplot(4, 8, n + 1)
+        else:
+            ax = fig.add_subplot(8, 8, n + 1)
+        plt.imshow(H_learned[:, :, 0, n], cmap='gray')
+
+
+        plt.xticks([])
+        plt.yticks([])
+        # plt.ylim([y_lim[0], y_lim[1]])
         ax.grid("Off")
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
@@ -1784,71 +1942,64 @@ def plot_lambda(
     num_epochs = lambda_epochs.shape[0]
     num_conv = lambda_epochs.shape[1]
     # best_epoch = np.argmin(loglambda_loss)
-    x_values = np.linspace(1, num_epochs, num_epochs)
-    x_lim = [1, num_epochs]
+
+    lambda_epochs = np.concatenate(
+        [np.zeros((1, 1)) + lambda_init, lambda_epochs], axis=0
+    )
+
+    x_values = np.linspace(0, num_epochs, num_epochs + 1)
+    x_lim = [0, num_epochs]
     y_lim = [0, 0]
     y_lim[0] = np.round(0.95 * np.min(lambda_epochs))
     y_lim[1] = np.round(1.05 * np.max(lambda_epochs))
+    y_lim[0] = 164
+    y_lim[1] = 196
+
+    print(np.min(lambda_epochs), lambda_epochs[-1, :])
 
     # plot
     k = 1
     for n in range(num_conv):
         ax = fig.add_subplot(row, np.int(num_conv / row), n + 1)
-        plt.axhline(y=lambda_init[n], color="k", lw=line_width * 0.5)
-        plt.plot(x_values, lambda_epochs[:, n], lw=line_width, color="r")
-        plt.plot(x_values[::k], lambda_epochs[::k, n], "vr", lw=line_width)
-        plt.plot(
-            x_values[best_epoch], lambda_epochs[best_epoch, n], "vb", lw=line_width
-        )
+        # plt.axhline(y=lambda_init[n], color="k", lw=line_width * 0.5)
+        plt.plot(x_values, lambda_epochs[:, n], lw=line_width, color="k")
+        plt.plot(x_values[::k], lambda_epochs[::k, n], ".k", lw=line_width)
+        # plt.plot(
+        #     x_values[best_epoch], lambda_epochs[best_epoch, n], "vb", lw=line_width
+        # )
 
-        for i in range(len(best_val_epoch)):
-            plt.plot(
-                x_values[best_val_epoch[i]],
-                lambda_epochs[best_val_epoch[i], n],
-                ".k",
-                lw=line_width,
-            )
+        # for i in range(len(best_val_epoch)):
+        #     plt.plot(
+        #         x_values[best_val_epoch[i]],
+        #         lambda_epochs[best_val_epoch[i], n],
+        #         ".k",
+        #         lw=line_width,
+        #     )
 
-        if n == 0 or n == np.int(num_conv / row):
-            plt.ylabel("$\mathrm{lambda}$", fontweight="bold")
-            if y_lim[1] - y_lim[0] != 0:
-                plt.yticks(
-                    [
-                        i
-                        for i in np.arange(
-                            y_lim[0], y_lim[1], (y_lim[1] - y_lim[0]) / 4
-                        )
-                    ]
-                )
-        else:
-            ax.get_yaxis().set_visible(False)
-            ax.spines["left"].set_visible(False)
-            ax.set_yticklabels([])
-
-        if n < np.int(num_conv / row):
-            ax.spines["bottom"].set_visible(False)
-            ax.get_xaxis().set_visible(False)
-            ax.set_xticklabels([])
-        else:
-            plt.xlabel("$\mathrm{Epochs}$", fontweight="bold")
-            plt.xticks([i for i in np.arange(x_lim[0], x_lim[1], 0.6)])
+        plt.ylabel("$\lambda$", fontweight="bold")
+        plt.xlabel("$\mathrm{Epochs}$", fontweight="bold")
+        plt.xticks([i for i in np.arange(x_lim[0], x_lim[1] + 1, 5)])
 
         if y_lim[1] - y_lim[0] != 0:
-            plt.yticks(
-                [i for i in np.arange(y_lim[0], y_lim[1], (y_lim[1] - y_lim[0]) / 4)]
-            )
+            # plt.yticks(
+            #     [i for i in np.arange(y_lim[0], y_lim[1], (y_lim[1] - y_lim[0]) / 4)]
+            # )
+            plt.yticks([i for i in np.arange(165, 195 + 1, 10)])
         ax.grid("Off")
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
-        plt.title(
-            "$\mathbf{lambda_%i}$" % (n + 1),
-            fontname="Times New Roman",
-            fontweight="bold",
-        )
+        # plt.title(
+        #     "$\mathbf{lambda_%i}$" % (n + 1),
+        #     fontname="Times New Roman",
+        #     fontweight="bold",
+        # )
 
     fig.tight_layout(pad=0.2, w_pad=0.1, h_pad=0)
     plt.savefig(
         "{}/experiments/{}/reports/lambda_{}.pdf".format(PATH, folder_name, file_number)
+    )
+    plt.savefig(
+        "{}/experiments/{}/reports/lambda_{}.eps".format(PATH, folder_name, file_number)
     )
 
 
@@ -2386,8 +2537,10 @@ def plot_H_err_epochs_sim_subplot(
     x_values = np.linspace(0, num_epochs + 1, num_epochs + 1)
     x_lim = [0, (num_epochs + 1)]
     y_lim = [0, 0]
-    y_lim[0] = 1.1 * np.min([np.min(dist_true_learned_epochs), np.min(dist_true_init)])
-    y_lim[1] = 0.9 * np.max([np.max(dist_true_learned_epochs), np.max(dist_true_init)])
+    # y_lim[0] = 1.1 * np.min([np.min(dist_true_learned_epochs), np.min(dist_true_init)])
+    # y_lim[1] = 0.9 * np.max([np.max(dist_true_learned_epochs), np.max(dist_true_init)])
+    y_lim[1] = 1
+    y_lim[0] = np.min([np.min(dist_true_learned_epochs), np.min(dist_true_init)])
 
     # plot
     k = 1
@@ -2422,7 +2575,8 @@ def plot_H_err_epochs_sim_subplot(
         if n == 0 or n == np.int(num_conv / row):
             plt.ylabel("$\mathrm{err}(\mathbf{h}_c,\hat{\mathbf{h}}_c)$")
             if y_lim[1] - y_lim[0] != 0:
-                plt.yticks([i for i in np.arange(y_lim[0], y_lim[1] + 0.5, 0.5)])
+                plt.yticks([i for i in np.arange(y_lim[0], y_lim[1] + 2, 6)])
+
             ax.get_yaxis().set_visible(True)
         else:
             ax.get_yaxis().set_visible(False)
@@ -2457,11 +2611,84 @@ def plot_denoise_real(
     i,
     y_test,
     y_test_hat,
-    MIMO,
     PATH,
     folder_name,
     file_number,
     sampling_rate,
+    line_width=2,
+    marker_size=30,
+    scale=4,
+    scale_height=0.5,
+    text_font=45,
+    title_font=55,
+    axes_font=48,
+    legend_font=34,
+    number_font=40,
+):
+
+    a = 10000
+    y_test = y_test[:,a:a+3000]
+    y_test_hat = y_test_hat[:,a:a+3000]
+
+    # upadte plot parameters
+    update_plot_parameters(
+        text_font=text_font,
+        title_font=title_font,
+        axes_font=axes_font,
+        legend_font=legend_font,
+        number_font=number_font,
+    )
+
+    # plot new fig
+    fig = newfig(scale=scale, scale_height=scale_height)
+
+    input_dim = y_test.shape[1]
+    x_values = np.linspace(0, (input_dim * 1000) / sampling_rate, input_dim)
+    x_lim = [0, 1.1 * (input_dim * 1000) / sampling_rate]
+    y_lim = [0, 0]
+    y_lim[0] = np.round(
+        1.1 * np.min([np.min(y_test[i, :, 0]), np.min(y_test_hat[i, :, 0])])
+    )
+    y_lim[1] = np.round(
+        1.5 * np.max([np.max(y_test[i, :, 0]), np.max(y_test_hat[i, :, 0])])
+    )
+
+    ax = fig.add_subplot(111)
+
+    plt.plot(
+        x_values, y_test[i, :, 0], lw=line_width, label="$y_{noisy}$", color="g"
+    )
+    plt.plot(
+        x_values, y_test_hat[i, :, 0], lw=line_width, label="$\hat y$", color="r"
+    )
+
+    plt.ylabel("$\mathrm{Voltage\;[mV]}$", fontweight="bold")
+    plt.xlabel("$\mathrm{Time\;[ms]}$", fontweight="bold")
+    plt.xticks(
+        [i for i in np.arange(x_lim[0], x_lim[1], (x_lim[1] - x_lim[0]) / 5)]
+    )
+    plt.yticks(
+        [i for i in np.arange(y_lim[0], y_lim[1], (y_lim[1] - y_lim[0]) / 5)]
+    )
+    ax.grid("Off")
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    plt.title("$denoising$", fontname="Times New Roman", fontweight="bold")
+    plt.legend(loc="upper right", ncol=1)
+    fig.tight_layout(pad=0.5, w_pad=0.5, h_pad=0)
+    plt.savefig(
+        "{}/experiments/{}/reports/denoise_{}.pdf".format(
+            PATH, folder_name, file_number
+        )
+    )
+
+def plot_denoise_real_2d(
+    i,
+    y_test,
+    y_test_hat,
+    PATH,
+    folder_name,
+    file_number,
     line_width=2,
     marker_size=30,
     scale=4,
@@ -2485,109 +2712,30 @@ def plot_denoise_real(
     # plot new fig
     fig = newfig(scale=scale, scale_height=scale_height)
 
-    if MIMO:
-        input_dim = y_test[0].shape[1]
-        x_values = np.linspace(0, (input_dim * 1000) / sampling_rate, input_dim)
-        x_lim = [0, 1.1 * (input_dim * 1000) / sampling_rate]
-        y_lim = [0, 0]
-        y_lim[0] = np.round(
-            1.1 * np.min([np.min(y_test[0][i, :, 0]), np.min(y_test_hat[0][i, :, 0])])
-        )
-        y_lim[1] = np.round(
-            1.5 * np.max([np.max(y_test[0][i, :, 0]), np.max(y_test_hat[0][i, :, 0])])
-        )
-    else:
-        input_dim = y_test.shape[1]
-        x_values = np.linspace(0, (input_dim * 1000) / sampling_rate, input_dim)
-        x_lim = [0, 1.1 * (input_dim * 1000) / sampling_rate]
-        y_lim = [0, 0]
-        y_lim[0] = np.round(
-            1.1 * np.min([np.min(y_test[i, :, 0]), np.min(y_test_hat[i, :, 0])])
-        )
-        y_lim[1] = np.round(
-            1.5 * np.max([np.max(y_test[i, :, 0]), np.max(y_test_hat[i, :, 0])])
-        )
+    ax = fig.add_subplot(121)
+    plt.imshow(y_test[i, :, :, 0], cmap='gray')
+    plt.xticks([])
+    plt.yticks([])
+    ax.grid("Off")
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    plt.title("$input$", fontname="Times New Roman", fontweight="bold")
 
-    if MIMO:
-        num_channels = len(y_test_hat)
-        for ch in range(num_channels):
-            ax = fig.add_subplot(num_channels, 1, ch + 1)
+    ax = fig.add_subplot(122)
+    plt.imshow(y_test_hat[i, :, :, 0], cmap='gray')
+    plt.xticks([])
+    plt.yticks([])
+    ax.grid("Off")
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    plt.title("$output$", fontname="Times New Roman", fontweight="bold")
 
-            plt.plot(
-                x_values,
-                y_test[ch][i, :, 0],
-                lw=line_width,
-                label="$y_{noisy}$",
-                color="g",
-            )
-            plt.plot(
-                x_values,
-                y_test_hat[ch][i, :, 0],
-                lw=line_width,
-                label="$\hat y$",
-                color="r",
-            )
-
-            if ch != (num_channels - 1):
-                ax.get_xaxis().set_visible(False)
-                ax.spines["bottom"].set_visible(False)
-            else:
-                plt.xlabel("$\mathrm{Time\;[ms]}$", fontweight="bold")
-                plt.xticks(
-                    [
-                        i
-                        for i in np.arange(
-                            x_lim[0], x_lim[1], (x_lim[1] - x_lim[0]) / 5
-                        )
-                    ]
-                )
-
-            plt.ylabel("$\mathrm{Voltage\;[mV]}$", fontweight="bold")
-            plt.yticks(
-                [i for i in np.arange(y_lim[0], y_lim[1], (y_lim[1] - y_lim[0]) / 5)]
-            )
-            ax.grid("Off")
-            ax.spines["top"].set_visible(False)
-            ax.spines["right"].set_visible(False)
-            if ch == 0:
-                plt.title("$denoising$", fontname="Times New Roman", fontweight="bold")
-                plt.legend(loc="upper right", ncol=1)
-
-        fig.tight_layout(pad=0.5, w_pad=0.5, h_pad=0)
-        plt.savefig(
-            "{}/experiments/{}/reports/denoise_{}.pdf".format(
-                PATH, folder_name, file_number
-            )
+    fig.tight_layout(pad=0.5, w_pad=0.5, h_pad=0)
+    plt.savefig(
+        "{}/experiments/{}/reports/denoise_{}.pdf".format(
+            PATH, folder_name, file_number
         )
-    else:
-        ax = fig.add_subplot(111)
-
-        plt.plot(
-            x_values, y_test[i, :, 0], lw=line_width, label="$y_{noisy}$", color="g"
-        )
-        plt.plot(
-            x_values, y_test_hat[i, :, 0], lw=line_width, label="$\hat y$", color="r"
-        )
-
-        plt.ylabel("$\mathrm{Voltage\;[mV]}$", fontweight="bold")
-        plt.xlabel("$\mathrm{Time\;[ms]}$", fontweight="bold")
-        plt.xticks(
-            [i for i in np.arange(x_lim[0], x_lim[1], (x_lim[1] - x_lim[0]) / 5)]
-        )
-        plt.yticks(
-            [i for i in np.arange(y_lim[0], y_lim[1], (y_lim[1] - y_lim[0]) / 5)]
-        )
-        ax.grid("Off")
-        ax.spines["top"].set_visible(False)
-        ax.spines["right"].set_visible(False)
-        plt.title("$denoising$", fontname="Times New Roman", fontweight="bold")
-        plt.legend(loc="upper right", ncol=1)
-        fig.tight_layout(pad=0.5, w_pad=0.5, h_pad=0)
-        plt.savefig(
-            "{}/experiments/{}/reports/denoise_{}.pdf".format(
-                PATH, folder_name, file_number
-            )
-        )
+    )
 
 
 def plot_denoise_sim(
@@ -2677,7 +2825,6 @@ def plot_separate_real(
     i,
     spikes,
     y_test_hat_separate,
-    MIMO,
     PATH,
     folder_name,
     file_number,
@@ -2705,138 +2852,45 @@ def plot_separate_real(
     # plot new fig
     fig = newfig(scale=scale, scale_height=scale_height)
 
-    if MIMO:
-        y_dim = y_test_hat_separate[0].shape[1]
-        num_conv = y_test_hat_separate[0].shape[-1]
-        x_values = np.linspace(0, (y_dim * 1000) / sampling_rate, y_dim)
-        x_lim = [0, 1.1 * (y_dim * 1000) / sampling_rate]
-        y_lim = [0, 0]
-        y_lim[0] = np.round(1.1 * np.min([np.min(y_test_hat_separate[0][i, :, :])]))
-        y_lim[1] = np.round(1.5 * np.max([np.max(y_test_hat_separate[0][i, :, :])]))
-    else:
-        y_dim = y_test_hat_separate.shape[1]
-        num_conv = z_test_hat.shape[-1]
-        x_values = np.linspace(0, (y_dim * 1000) / sampling_rate, y_dim)
-        x_lim = [0, 1.1 * (y_dim * 1000) / sampling_rate]
-        y_lim = [0, 0]
-        y_lim[0] = np.round(1.1 * np.min([np.min(y_test_hat_separate[0, :, :])]))
-        y_lim[1] = np.round(1.5 * np.max([np.max(y_test_hat_separate[0, :, :])]))
+    y_dim = y_test_hat_separate.shape[1]
+    num_conv = z_test_hat.shape[-1]
+    x_values = np.linspace(0, (y_dim * 1000) / sampling_rate, y_dim)
+    x_lim = [0, 1.1 * (y_dim * 1000) / sampling_rate]
+    y_lim = [0, 0]
+    y_lim[0] = np.round(1.1 * np.min([np.min(y_test_hat_separate[0, :, :])]))
+    y_lim[1] = np.round(1.5 * np.max([np.max(y_test_hat_separate[0, :, :])]))
 
-    if MIMO:
-        num_channels = len(y_test_hat_separate)
-        for ch in range(num_channels):
-            for n in range(num_conv):
-                ax = fig.add_subplot(
-                    num_channels, num_conv, ((ch * num_conv)) + (n + 1)
-                )
-                plt.plot(
-                    x_values,
-                    1000 * spikes[(i * dur) : ((i + 1) * dur)],
-                    lw=line_width,
-                    label="$true$",
-                    color="k",
-                )
-                plt.plot(
-                    x_values,
-                    -1000 * spikes[(i * dur) : ((i + 1) * dur)],
-                    lw=line_width,
-                    color="k",
-                )
-                plt.plot(
-                    x_values,
-                    y_test_hat_separate[ch][0, :, n],
-                    lw=line_width,
-                    label="$\hat y_{separate}$",
-                    color="r",
-                )
-
-                if ch != (num_channels - 1):
-                    ax.get_xaxis().set_visible(False)
-                    ax.spines["bottom"].set_visible(False)
-                else:
-                    plt.xlabel("$\mathrm{Time\;[ms]}$", fontweight="bold")
-                    plt.xticks(
-                        [
-                            i
-                            for i in np.arange(
-                                x_lim[0], x_lim[1], (x_lim[1] - x_lim[0]) / 5
-                            )
-                        ]
-                    )
-
-                plt.ylim(y_lim)
-                plt.ylabel("$\mathrm{Voltage\;[mV]}$", fontweight="bold")
-                plt.yticks(
-                    [
-                        i
-                        for i in np.arange(
-                            y_lim[0], y_lim[1], (y_lim[1] - y_lim[0]) / 5
-                        )
-                    ]
-                )
-                ax.grid("Off")
-                ax.spines["top"].set_visible(False)
-                ax.spines["right"].set_visible(False)
-                if ch == 0:
-                    plt.title(
-                        "$\mathbf{y_%i}$" % (n + 1),
-                        fontname="Times New Roman",
-                        fontweight="bold",
-                    )
-                    if n == 0:
-                        plt.legend(loc="upper left", ncol=1)
-
-        fig.tight_layout(pad=0.5, w_pad=0.5, h_pad=0)
-        plt.savefig(
-            "{}/experiments/{}/reports/separate_{}.pdf".format(
-                PATH, folder_name, file_number
-            )
+    for n in range(num_conv):
+        ax = fig.add_subplot(1, num_conv, n + 1)
+        plt.plot(
+            x_values,
+            y_test_hat_separate[0, (i * dur) : ((i + 1) * dur), n],
+            lw=line_width,
+            label="$\hat y_{separate}$",
+            color="r",
         )
-    else:
-        for n in range(num_conv):
-            ax = fig.add_subplot(1, num_conv, n + 1)
-            plt.plot(
-                x_values,
-                1000 * spikes[(i * dur) : ((i + 1) * dur)],
-                lw=line_width,
-                label="$true$",
-                color="k",
-            )
-            plt.plot(
-                x_values,
-                -1000 * spikes[(i * dur) : ((i + 1) * dur)],
-                lw=line_width,
-                color="k",
-            )
-            plt.plot(
-                x_values,
-                y_test_hat_separate[0, (i * dur) : ((i + 1) * dur), n],
-                lw=line_width,
-                label="$\hat y_{separate}$",
-                color="r",
-            )
 
-            plt.ylabel("$\mathrm{Voltage\;[mV]}$", fontweight="bold")
-            plt.xlabel("$\mathrm{Time\;[ms]}$", fontweight="bold")
-            plt.ylim(y_lim)
-            plt.xticks(
-                [i for i in np.arange(x_lim[0], x_lim[1], (x_lim[1] - x_lim[0]) / 5)]
-            )
-            plt.yticks(
-                [i for i in np.arange(y_lim[0], y_lim[1], (x_lim[1] - x_lim[0]) / 5)]
-            )
-            ax.grid("Off")
-            ax.spines["top"].set_visible(False)
-            ax.spines["right"].set_visible(False)
-            if n != 0:
-                ax.spines["left"].set_visible(False)
-            plt.title(
-                "$\mathbf{y_%i}$" % (n + 1),
-                fontname="Times New Roman",
-                fontweight="bold",
-            )
-            if n == 0:
-                plt.legend(loc="upper left", ncol=1)
+        plt.ylabel("$\mathrm{Voltage\;[mV]}$", fontweight="bold")
+        plt.xlabel("$\mathrm{Time\;[ms]}$", fontweight="bold")
+        plt.ylim(y_lim)
+        plt.xticks(
+            [i for i in np.arange(x_lim[0], x_lim[1], (x_lim[1] - x_lim[0]) / 5)]
+        )
+        plt.yticks(
+            [i for i in np.arange(y_lim[0], y_lim[1], (x_lim[1] - x_lim[0]) / 5)]
+        )
+        ax.grid("Off")
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        if n != 0:
+            ax.spines["left"].set_visible(False)
+        plt.title(
+            "$\mathbf{y_%i}$" % (n + 1),
+            fontname="Times New Roman",
+            fontweight="bold",
+        )
+        if n == 0:
+            plt.legend(loc="upper left", ncol=1)
 
         plt.legend(loc="upper right", ncol=1)
         fig.tight_layout(pad=0.5, w_pad=0.5, h_pad=0)
@@ -2852,7 +2906,6 @@ def plot_separate_real_series(
     dur,
     spikes,
     y_series_hat_separate,
-    MIMO,
     PATH,
     folder_name,
     file_number,
@@ -2880,152 +2933,50 @@ def plot_separate_real_series(
     # plot new fig
     fig = newfig(scale=scale, scale_height=scale_height)
 
-    if MIMO:
-        num_conv = y_series_hat_separate[0].shape[-1]
-        x_values = np.linspace(0, (dur * 1000) / sampling_rate, dur)
-        x_lim = [0, 1.1 * (dur * 1000) / sampling_rate]
-        y_lim = [0, 0]
-        y_lim[0] = np.round(
-            1.1
-            * np.min(
-                [np.min(y_series_hat_separate[0][0, (i * dur) : ((i + 1) * dur), :])]
-            )
-        )
-        y_lim[1] = np.round(
-            1.5
-            * np.max(
-                [np.max(y_series_hat_separate[0][0, (i * dur) : ((i + 1) * dur), :])]
-            )
-        )
-    else:
-        num_conv = y_series_hat_separate.shape[-1]
-        x_values = np.linspace(0, (dur * 1000) / sampling_rate, dur)
-        x_lim = [0, 1.1 * (dur * 1000) / sampling_rate]
-        y_lim = [0, 0]
-        y_lim[0] = np.round(
-            1.1
-            * np.min([np.min(y_series_hat_separate[0, (i * dur) : ((i + 1) * dur), :])])
-        )
-        y_lim[1] = np.round(
-            1.5
-            * np.max([np.max(y_series_hat_separate[0, (i * dur) : ((i + 1) * dur), :])])
+    num_conv = y_series_hat_separate.shape[-1]
+    x_values = np.linspace(0, (dur * 1000) / sampling_rate, dur)
+    x_lim = [0, 1.1 * (dur * 1000) / sampling_rate]
+    y_lim = [0, 0]
+    y_lim[0] = np.round(
+        1.1
+        * np.min([np.min(y_series_hat_separate[0, (i * dur) : ((i + 1) * dur), :])])
+    )
+    y_lim[1] = np.round(
+        1.5
+        * np.max([np.max(y_series_hat_separate[0, (i * dur) : ((i + 1) * dur), :])])
+    )
+
+    for n in range(num_conv):
+        ax = fig.add_subplot(1, num_conv, n + 1)
+        plt.plot(
+            x_values,
+            y_series_hat_separate[0, (i * dur) : ((i + 1) * dur), n],
+            lw=line_width,
+            label="$\hat y_{separate}$",
+            color="r",
         )
 
-    if MIMO:
-        num_channels = len(y_series_hat_separate)
-        for ch in range(num_channels):
-            for n in range(num_conv):
-                ax = fig.add_subplot(
-                    num_channels, num_conv, ((ch * num_conv)) + (n + 1)
-                )
-                plt.plot(
-                    x_values,
-                    1000 * spikes[(i * dur) : ((i + 1) * dur)],
-                    lw=line_width,
-                    label="$true$",
-                    color="k",
-                )
-                plt.plot(
-                    x_values,
-                    -1000 * spikes[(i * dur) : ((i + 1) * dur)],
-                    lw=line_width,
-                    color="k",
-                )
-                plt.plot(
-                    x_values,
-                    y_series_hat_separate[ch][0, (i * dur) : ((i + 1) * dur), n],
-                    lw=line_width,
-                    label="$\hat y_{separate}$",
-                    color="r",
-                )
-
-                if ch != (num_channels - 1):
-                    ax.get_xaxis().set_visible(False)
-                    ax.spines["bottom"].set_visible(False)
-                else:
-                    plt.xlabel("$\mathrm{Time\;[ms]}$", fontweight="bold")
-                    plt.xticks(
-                        [
-                            i
-                            for i in np.arange(
-                                x_lim[0], x_lim[1], (x_lim[1] - x_lim[0]) / 5
-                            )
-                        ]
-                    )
-
-                plt.ylim(y_lim)
-                plt.ylabel("$\mathrm{Voltage\;[mV]}$", fontweight="bold")
-                plt.yticks(
-                    [
-                        i
-                        for i in np.arange(
-                            y_lim[0], y_lim[1], (y_lim[1] - y_lim[0]) / 5
-                        )
-                    ]
-                )
-                ax.grid("Off")
-                ax.spines["top"].set_visible(False)
-                ax.spines["right"].set_visible(False)
-                if ch == 0:
-                    plt.title(
-                        "$\mathbf{y_%i}$" % (n + 1),
-                        fontname="Times New Roman",
-                        fontweight="bold",
-                    )
-                    if n == 0:
-                        plt.legend(loc="upper left", ncol=1)
-
-        fig.tight_layout(pad=0.5, w_pad=0.5, h_pad=0)
-        plt.savefig(
-            "{}/experiments/{}/reports/separate_{}.pdf".format(
-                PATH, folder_name, file_number
-            )
+        plt.ylabel("$\mathrm{Voltage\;[mV]}$", fontweight="bold")
+        plt.xlabel("$\mathrm{Time\;[ms]}$", fontweight="bold")
+        plt.ylim(y_lim)
+        plt.xticks(
+            [i for i in np.arange(x_lim[0], x_lim[1], (x_lim[1] - x_lim[0]) / 5)]
         )
-    else:
-        for n in range(num_conv):
-            ax = fig.add_subplot(1, num_conv, n + 1)
-            plt.plot(
-                x_values,
-                1000 * spikes[(i * dur) : ((i + 1) * dur)],
-                lw=line_width,
-                label="$true$",
-                color="k",
-            )
-            plt.plot(
-                x_values,
-                -1000 * spikes[(i * dur) : ((i + 1) * dur)],
-                lw=line_width,
-                color="k",
-            )
-            plt.plot(
-                x_values,
-                y_series_hat_separate[0, (i * dur) : ((i + 1) * dur), n],
-                lw=line_width,
-                label="$\hat y_{separate}$",
-                color="r",
-            )
-
-            plt.ylabel("$\mathrm{Voltage\;[mV]}$", fontweight="bold")
-            plt.xlabel("$\mathrm{Time\;[ms]}$", fontweight="bold")
-            plt.ylim(y_lim)
-            plt.xticks(
-                [i for i in np.arange(x_lim[0], x_lim[1], (x_lim[1] - x_lim[0]) / 5)]
-            )
-            plt.yticks(
-                [i for i in np.arange(y_lim[0], y_lim[1], (x_lim[1] - x_lim[0]) / 5)]
-            )
-            ax.grid("Off")
-            ax.spines["top"].set_visible(False)
-            ax.spines["right"].set_visible(False)
-            if n != 0:
-                ax.spines["left"].set_visible(False)
-            plt.title(
-                "$\mathbf{y_%i}$" % (n + 1),
-                fontname="Times New Roman",
-                fontweight="bold",
-            )
-            if n == 0:
-                plt.legend(loc="upper left", ncol=1)
+        plt.yticks(
+            [i for i in np.arange(y_lim[0], y_lim[1], (x_lim[1] - x_lim[0]) / 5)]
+        )
+        ax.grid("Off")
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        if n != 0:
+            ax.spines["left"].set_visible(False)
+        plt.title(
+            "$\mathbf{y_%i}$" % (n + 1),
+            fontname="Times New Roman",
+            fontweight="bold",
+        )
+        if n == 0:
+            plt.legend(loc="upper left", ncol=1)
 
         plt.legend(loc="upper right", ncol=1)
         fig.tight_layout(pad=0.5, w_pad=0.5, h_pad=0)
@@ -3039,7 +2990,6 @@ def plot_separate_real_series(
 def plot_code_real(
     i,
     z_test_hat,
-    MIMO,
     PATH,
     folder_name,
     file_number,
@@ -3067,115 +3017,113 @@ def plot_code_real(
     # plot new fig
     fig = newfig(scale=scale, scale_height=scale_height)
 
-    if MIMO:
-        z_dim = z_test_hat[0].shape[1]
-        num_conv = z_test_hat[0].shape[-1]
-        x_values = np.linspace(0, (z_dim * 1000) / sampling_rate, z_dim)
-        x_lim = [0, 1.1 * (z_dim * 1000) / sampling_rate]
-        y_lim = [0, 0]
-        y_lim[0] = np.round(1.1 * np.min([np.min(z_test_hat[0][i, :, :])]))
-        y_lim[1] = np.round(1.5 * np.max([np.max(z_test_hat[0][i, :, :])]))
-    else:
-        z_dim = z_test_hat.shape[1]
-        num_conv = z_test_hat.shape[-1]
-        x_values = np.linspace(0, (z_dim * 1000) / sampling_rate, z_dim)
-        x_lim = [0, 1.1 * (z_dim * 1000) / sampling_rate]
-        y_lim = [0, 0]
-        y_lim[0] = np.round(1.1 * np.min([np.min(z_test_hat[i, :, :])]))
-        y_lim[1] = np.round(1.5 * np.max([np.max(z_test_hat[i, :, :])]))
+    z_dim = z_test_hat.shape[1]
+    num_conv = z_test_hat.shape[-1]
+    x_values = np.linspace(0, (z_dim * 1000) / sampling_rate, z_dim)
+    x_lim = [0, 1.1 * (z_dim * 1000) / sampling_rate]
+    y_lim = [0, 0]
+    y_lim[0] = np.round(1.1 * np.min([np.min(z_test_hat[i, :, :])]))
+    y_lim[1] = np.round(1.5 * np.max([np.max(z_test_hat[i, :, :])]))
 
-    if MIMO:
-        num_channels = len(z_test_hat)
-        for ch in range(num_channels):
-            for n in range(num_conv):
-                ax = fig.add_subplot(
-                    num_channels, num_conv, ((ch * num_conv)) + (n + 1)
-                )
-                plt.plot(
-                    x_values,
-                    z_test_hat[ch][i, :, n],
-                    lw=line_width,
-                    label="$\hat z$",
-                    color="r",
-                )
+    for n in range(num_conv):
+        ax = fig.add_subplot(1, num_conv, n + 1)
+        plt.plot(
+            x_values,
+            z_test_hat[i, :, n],
+            lw=line_width,
+            label="$\hat z$",
+            color="r",
+        )
 
-                if ch != (num_channels - 1):
-                    ax.get_xaxis().set_visible(False)
-                    ax.spines["bottom"].set_visible(False)
-                else:
-                    plt.xlabel("$\mathrm{Time\;[ms]}$", fontweight="bold")
-                    plt.xticks(
-                        [
-                            i
-                            for i in np.arange(
-                                x_lim[0], x_lim[1], (x_lim[1] - x_lim[0]) / 5
-                            )
-                        ]
+        plt.ylabel("$\mathrm{Voltage\;[mV]}$", fontweight="bold")
+        plt.xlabel("$\mathrm{Time\;[ms]}$", fontweight="bold")
+        plt.xticks(
+            [i for i in np.arange(x_lim[0], x_lim[1], (x_lim[1] - x_lim[0]) / 5)]
+        )
+        if y_lim[1] - y_lim[0] != 0:
+            plt.yticks(
+                [
+                    i
+                    for i in np.arange(
+                        y_lim[0], y_lim[1], (y_lim[1] - y_lim[0]) / 5
                     )
+                ]
+            )
+        ax.grid("Off")
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        if n != 0:
+            ax.spines["left"].set_visible(False)
+        plt.title(
+            "$\mathbf{z_%i}$" % (n + 1),
+            fontname="Times New Roman",
+            fontweight="bold",
+        )
 
-                plt.ylabel("$\mathrm{Voltage\;[mV]}$", fontweight="bold")
-                plt.yticks(
-                    [
-                        i
-                        for i in np.arange(
-                            y_lim[0], y_lim[1], (y_lim[1] - y_lim[0]) / 5
-                        )
-                    ]
-                )
-                ax.grid("Off")
-                ax.spines["top"].set_visible(False)
-                ax.spines["right"].set_visible(False)
-                if ch == 0:
-                    plt.title(
-                        "$\mathbf{z_%i}$" % (n + 1),
-                        fontname="Times New Roman",
-                        fontweight="bold",
-                    )
-                    plt.legend(loc="upper right", ncol=1)
-
+        plt.legend(loc="upper right", ncol=1)
         fig.tight_layout(pad=0.5, w_pad=0.5, h_pad=0)
         plt.savefig(
             "{}/experiments/{}/reports/code_{}.pdf".format(
                 PATH, folder_name, file_number
             )
         )
-    else:
-        for n in range(num_conv):
+
+
+def plot_code_real_2d(
+    i,
+    z_test_hat,
+    PATH,
+    folder_name,
+    file_number,
+    marker_size=30,
+    scale=4,
+    scale_height=0.5,
+    text_font=45,
+    title_font=55,
+    axes_font=48,
+    legend_font=34,
+    number_font=40,
+):
+
+    # upadte plot parameters
+    update_plot_parameters(
+        text_font=text_font,
+        title_font=title_font,
+        axes_font=axes_font,
+        legend_font=legend_font,
+        number_font=number_font,
+    )
+
+    # plot new fig
+    fig = newfig(scale=scale, scale_height=scale_height)
+
+    num_conv = z_test_hat.shape[-1]
+
+    k = 4
+    for n in range(num_conv):
+        if (num_conv<=8):
             ax = fig.add_subplot(1, num_conv, n + 1)
-            plt.plot(
-                x_values,
-                z_test_hat[i, :, n],
-                lw=line_width,
-                label="$\hat z$",
-                color="r",
-            )
+        elif(num_conv<=16):
+            ax = fig.add_subplot(2, 8, n + 1)
+        elif(num_conv<=32):
+            ax = fig.add_subplot(4, 8, n + 1)
+        else:
+            ax = fig.add_subplot(8, 8, n + 1)
+        plt.imshow(z_test_hat[i, :, :, n], cmap='gray')
 
-            plt.ylabel("$\mathrm{Voltage\;[mV]}$", fontweight="bold")
-            plt.xlabel("$\mathrm{Time\;[ms]}$", fontweight="bold")
-            plt.xticks(
-                [i for i in np.arange(x_lim[0], x_lim[1], (x_lim[1] - x_lim[0]) / 5)]
-            )
-            if y_lim[1] - y_lim[0] != 0:
-                plt.yticks(
-                    [
-                        i
-                        for i in np.arange(
-                            y_lim[0], y_lim[1], (y_lim[1] - y_lim[0]) / 5
-                        )
-                    ]
-                )
-            ax.grid("Off")
-            ax.spines["top"].set_visible(False)
-            ax.spines["right"].set_visible(False)
-            if n != 0:
-                ax.spines["left"].set_visible(False)
-            plt.title(
-                "$\mathbf{z_%i}$" % (n + 1),
-                fontname="Times New Roman",
-                fontweight="bold",
-            )
+        plt.xticks([])
+        plt.yticks([])
+        # plt.ylim([y_lim[0], y_lim[1]])
+        ax.grid("Off")
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        if n != 0:
+            ax.spines["left"].set_visible(False)
+            ax.get_yaxis().set_visible(False)
+        plt.title(
+            "%i" % (np.sum(np.sum(np.abs(z_test_hat[i, :, :, n])))), fontname="Times New Roman", fontweight="bold"
+        )
 
-        plt.legend(loc="upper right", ncol=1)
         fig.tight_layout(pad=0.5, w_pad=0.5, h_pad=0)
         plt.savefig(
             "{}/experiments/{}/reports/code_{}.pdf".format(
@@ -3693,10 +3641,316 @@ def plot_alpha_tune_sim(
     plt.savefig("{}/experiments/alpha_tune_1_{}.pdf".format(PATH, time))
 
 
+def plot_H_crsae_vs_lcsc(
+    H_true,
+    H_init,
+    H_learned,
+    d_learned,
+    best_permutation_index_H,
+    best_permutation_index_d,
+    flip_H,
+    flip_d,
+    PATH,
+    sampling_rate,
+    row=1,
+    y_fine=0.1,
+    line_width=2,
+    marker_size=30,
+    scale=4,
+    scale_height=0.5,
+    text_font=45,
+    title_font=55,
+    axes_font=48,
+    legend_font=34,
+    number_font=40,
+):
+
+    # upadte plot parameters
+    update_plot_parameters(
+        text_font=text_font,
+        title_font=title_font,
+        axes_font=axes_font,
+        legend_font=legend_font,
+        number_font=number_font,
+    )
+
+    # plot new fig
+    fig = newfig(scale=scale, scale_height=scale_height)
+
+    num_conv = H_true.shape[2]
+    dictionary_dim = H_true.shape[0]
+    permutations = list(itertools.permutations(np.arange(0, num_conv, 1)))
+
+    x_values = np.linspace(0, (dictionary_dim * 1000) / sampling_rate, dictionary_dim)
+    x_lim = [0, 1.2 * (dictionary_dim * 1000) / sampling_rate]
+
+    y_lim = [0, 0]
+    y_lim[0] = np.round(
+        1.1 * np.min([np.min(H_true), np.min(H_init), np.min(H_learned)]), 2
+    )
+    y_lim[1] = np.round(
+        1.5 * np.max([np.max(H_true), np.max(H_init), np.max(H_learned)]), 2
+    )
+    # if file_number == "2018-08-07-20-05-53":
+    # y_lim = [-0.5, 0.5]
+    # y_fine = 0.5
+
+    k = 4
+    for n in range(num_conv):
+        ax = fig.add_subplot(row, np.int(num_conv / row), n + 1)
+        if n == np.int(num_conv / row) - 1:
+            plt.plot(
+                x_values,
+                H_true[:, 0, n],
+                lw=line_width * 4,
+                label="$\mathrm{True}$",
+                color="k",
+            )
+        else:
+            plt.plot(x_values, H_true[:, 0, n], lw=line_width * 4, color="k")
+
+        plt.plot(
+            x_values,
+            flip_H[n] * H_init[:, 0, permutations[best_permutation_index_H][n]],
+            lw=line_width * 0.9,
+            color="gray",
+        )
+
+        if n == np.int(num_conv / row) - 2:
+            plt.plot(
+                x_values[::k],
+                flip_H[n] * H_init[::k, 0, permutations[best_permutation_index_H][n]],
+                "v",
+                markersize=marker_size,
+                label="$\mathrm{Init}$",
+                color="gray",
+            )
+        else:
+            plt.plot(
+                x_values[::k],
+                flip_H[n] * H_init[::k, 0, permutations[best_permutation_index_H][n]],
+                "v",
+                markersize=marker_size,
+                color="gray",
+            )
+
+        plt.plot(
+            x_values[:],
+            flip_H[n] * H_learned[:, 0, permutations[best_permutation_index_H][n]],
+            lw=line_width,
+            color="r",
+        )
+        plt.plot(
+            x_values[:],
+            flip_d[n] * d_learned[:, 0, permutations[best_permutation_index_d][n]],
+            lw=line_width,
+            color="g",
+        )
+        if n == np.int(num_conv / row) - 3:
+            plt.plot(
+                x_values[::k],
+                flip_H[n]
+                * H_learned[::k, 0, permutations[best_permutation_index_H][n]],
+                "*",
+                markersize=marker_size,
+                label="$\mathrm{CRsAE}$",
+                color="r",
+            )
+            plt.plot(
+                x_values[::k],
+                flip_d[n]
+                * d_learned[::k, 0, permutations[best_permutation_index_d][n]],
+                ".",
+                markersize=marker_size,
+                color="g",
+            )
+
+        else:
+            plt.plot(
+                x_values[::k],
+                flip_H[n]
+                * H_learned[::k, 0, permutations[best_permutation_index_H][n]],
+                "*",
+                markersize=marker_size,
+                color="r",
+            )
+            if n == 0:
+                plt.plot(
+                    x_values[::k],
+                    flip_d[n]
+                    * d_learned[::k, 0, permutations[best_permutation_index_d][n]],
+                    ".",
+                    markersize=marker_size,
+                    label="$\mathrm{LCSC}$",
+                    color="g",
+                )
+            else:
+                plt.plot(
+                    x_values[::k],
+                    flip_d[n]
+                    * d_learned[::k, 0, permutations[best_permutation_index_d][n]],
+                    ".",
+                    markersize=marker_size,
+                    color="g",
+                )
+
+        if n == 0 or n == np.int(num_conv / row):
+            plt.ylabel("$\mathrm{Voltage\;[mV]}$", fontweight="bold")
+            # plt.yticks([i for i in np.arange(y_lim[0], y_lim[1] + 0.5, y_fine)])
+            plt.yticks([i for i in np.arange(-0.6, 0.6 + 0.1, 0.6)])
+        else:
+            ax.get_yaxis().set_visible(False)
+            ax.spines["left"].set_visible(False)
+            ax.set_yticklabels([])
+
+        # if n < np.int(num_conv / row):
+        #     ax.spines["bottom"].set_visible(False)
+        #     ax.get_xaxis().set_visible(False)
+        #     ax.set_xticklabels([])
+        # else:
+        #     plt.xlabel("$\mathrm{Time\;[ms]}$", fontweight="bold")
+        #     plt.xticks([i for i in np.arange(x_lim[0], x_lim[1], 0.6)])
+
+        plt.xlabel("$\mathrm{Time\;[ms]}$", fontweight="bold")
+        # plt.xlabel("$\mathrm{Samples\;[n]}$", fontweight="bold")
+        plt.xticks([i for i in np.arange(x_lim[0], x_lim[1], 0.9)])
+        if n == np.int(num_conv / row) - 1:
+            plt.legend(loc="upper right", ncol=1, columnspacing=0.1, handletextpad=0.3)
+        if n == np.int(num_conv / row) - 2:
+            plt.legend(loc="upper right", ncol=1, columnspacing=0.1, handletextpad=0.05)
+        if n == np.int(num_conv / row) - 3:
+            plt.legend(loc="upper right", ncol=1, columnspacing=0.1, handletextpad=0.05)
+        if n == np.int(num_conv / row) - 4:
+            plt.legend(loc="upper right", ncol=1, columnspacing=0.1, handletextpad=0.05)
+
+        plt.ylim([y_lim[0], y_lim[1] + 0.05])
+        ax.grid("Off")
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        plt.title(
+            "$\mathbf{h_%i}$" % (n + 1), fontname="Times New Roman", fontweight="bold"
+        )
+
+    fig.tight_layout(pad=0.2, w_pad=0.1, h_pad=0)
+    plt.savefig("{}/experiments/H.pdf".format(PATH))
+
+
+def plot_H_err_crsae_vs_lcsc(
+    dist_true_learned_epochs,
+    dist_true_init,
+    dist_true_learned_epochs_2,
+    PATH,
+    row=2,
+    y_fine=0.5,
+    line_width=2.5,
+    marker_size=20,
+    scale=4,
+    scale_height=0.75,
+    text_font=45,
+    title_font=45,
+    axes_font=48,
+    legend_font=32,
+    number_font=40,
+):
+
+    # upadte plot parameters
+    update_plot_parameters(
+        text_font=text_font,
+        title_font=title_font,
+        axes_font=axes_font,
+        legend_font=legend_font,
+        number_font=number_font,
+    )
+
+    # plot new fig
+    fig = newfig(scale=scale, scale_height=scale_height)
+
+    num_epochs = dist_true_learned_epochs.shape[1]
+    num_conv = dist_true_learned_epochs.shape[0]
+    y_values = np.zeros((num_conv, num_epochs + 1))
+    y_values[:, 0] = dist_true_init
+    y_values[:, 1:] = dist_true_learned_epochs
+
+    y_values_2 = np.zeros((num_conv, num_epochs + 1))
+    y_values_2[:, 0] = dist_true_init
+    y_values_2[:, 1:] = dist_true_learned_epochs_2
+
+    x_values = np.linspace(0, num_epochs + 1, num_epochs + 1)
+    x_lim = [0, (num_epochs + 1)]
+    y_lim = [0, 0]
+    y_lim[1] = 1
+    y_lim[0] = -18
+
+    # plot
+    k = 1
+    row = 1
+    for n in range(num_conv):
+        ax = fig.add_subplot(row, np.int(num_conv / row), n + 1)
+        plt.plot(x_values, y_values[n, :], lw=line_width, color="k")
+        # plt.plot(x_values, y_values_2[n, :], lw=line_width, color="b")
+        plt.plot(x_values[::k], y_values[n, ::k], ".k", lw=line_width)
+
+        # if (n == num_conv - 1):
+        #     plt.plot(x_values[::k], y_values[n, ::k], ".k", label="CRsAE", lw=line_width)
+        #     plt.plot(x_values[::k], y_values_2[n, ::k], "*b", label="LCSC", lw=line_width)
+        # else:
+        #     plt.plot(x_values[::k], y_values[n, ::k], ".k", lw=line_width)
+        #     plt.plot(x_values[::k], y_values_2[n, ::k], "*b", lw=line_width)
+
+        # for i in range(len(best_val_epoch)):
+        #     plt.plot(
+        #         x_values[best_val_epoch[i] + 1],
+        #         y_values[n, best_val_epoch[i] + 1],
+        #         best_local_marker[n],
+        #         lw=line_width,
+        #     )
+
+        # plt.plot(
+        #     x_values[best_epoch + 1], y_values[n, best_epoch + 1], "vb", lw=line_width
+        # )
+
+        if n == (np.int(num_conv / row) - 1):
+            # plt.plot(
+            #     x_values[best_epoch + 1],
+            #     y_values[n, best_epoch + 1],
+            #     "vb",
+            #     label="Best Val Loss",
+            #     lw=line_width,
+            # )
+            plt.legend(loc="upper right", ncol=1)
+
+        if n == 0 or n == np.int(num_conv / row):
+            plt.ylabel("$\mathrm{err}(\mathbf{h}_c,\hat{\mathbf{h}}_c)$")
+            if y_lim[1] - y_lim[0] != 0:
+                # plt.yticks([i for i in np.arange(y_lim[0], y_lim[1] + 0.5, 0.5)])
+                plt.yticks([i for i in np.arange(y_lim[0], 0 + 0.5, 6)])
+            ax.get_yaxis().set_visible(True)
+        else:
+            ax.get_yaxis().set_visible(False)
+            ax.spines["left"].set_visible(False)
+            ax.set_yticklabels([])
+
+        plt.xlabel("$\mathrm{Epochs}$")
+        plt.xticks([i for i in range(0, len(x_values), 10)])
+        plt.legend(loc="upper right", ncol=1, columnspacing=0.1, handletextpad=0.05)
+
+        plt.title("$\mathbf{h}_%i$" % (n + 1))
+
+        if y_lim[1] - y_lim[0] != 0:
+            plt.ylim(y_lim[0], y_lim[1])
+        ax.grid("Off")
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+
+    fig.tight_layout(pad=0.2, w_pad=0.1, h_pad=0)
+    plt.savefig("{}/experiments/H_err_subplot_paper.pdf".format(PATH))
+
+
 def plot_snr_results(
     snr_list,
     dist_err,
     dist_init_err,
+    dist_err_2,
     PATH,
     folder_name,
     file_number,
@@ -3726,38 +3980,58 @@ def plot_snr_results(
 
     dist_err = np.array(dist_err).T
     dist_init_err = np.array(dist_init_err).T
+    dist_err_2 = np.array(dist_err_2).T
 
     num_conv = dist_err.shape[0]
 
     x_values = snr_list
     x_lim = [min(x_values), max(x_values)]
     y_values = dist_err
+    y_values_2 = dist_err_2
     y_lim = [0, 0]
-    y_lim[0] = 0
-    y_lim[1] = 1
+    y_lim[1] = 0 + 6
+    y_lim[0] = np.min(y_values)
+    y_lim[0] = -17
 
     # plot
     k = 1
     ax = fig.add_subplot(111)
-    c = ["r", "g", "y", "b", "k", "c", "m", "r"]
-    marker = ["vr", "*g", ".y", ">b", "dk", "^c", "om", "xr"]
-    for n in range(num_conv):
-        plt.plot(x_values, y_values[n, :], lw=line_width, color=c[n])
-        plt.plot(
-            x_values[::k],
-            y_values[n, ::k],
-            marker[n],
-            label="$(\mathbf{h}_%i,\hat{\mathbf{h}}_%i)$" % (n + 1, n + 1),
-            lw=line_width,
-        )
-    y_init = y_values[n, :] * 0 + 0.95
-    plt.plot(x_values, y_init, "k", label="Initial", lw=line_width * 0.2)
+    c = ["r", "g", "y", "k"]
+    marker = ["vr", "*g", ".y", "ok"]
+    c_2 = ["r", "c", "m", "b"]
+    marker_2 = ["dr", "^c", "om", "vb"]
 
-    plt.ylabel("$\mathrm{err}(\mathbf{h}_c,\hat{\mathbf{h}}_c)$")
-    plt.xlabel("$\mathrm{SNR}$")
-    plt.xticks([1.5, 4, 9, 16])
-    plt.legend(loc="upper right", ncol=3, columnspacing=0.3)
-    plt.yticks([i for i in np.arange(y_lim[0], y_lim[1] + y_fine, y_fine)])
+    n = 3
+    # for n in range(num_conv):
+    plt.plot(x_values, y_values[n, :], lw=line_width, color=c[n])
+    plt.plot(
+        x_values[::k],
+        y_values[n, ::k],
+        marker[n],
+        # label="$(\mathbf{h}_%i,\hat{\mathbf{h}}_%i)_{CRsAE}$" % (n + 1, n + 1),
+        label="$\small{CRsAE}$",
+        lw=line_width,
+    )
+
+    plt.plot(x_values, y_values_2[n, :], lw=line_width, color=c_2[n])
+    plt.plot(
+        x_values[::k],
+        y_values_2[n, ::k],
+        marker_2[n],
+        # label="$(\mathbf{h}_%i,\hat{\mathbf{h}}_%i)_{LCSC}$" % (n + 1, n + 1),
+        label="$\small{LCSC}$",
+        lw=line_width,
+    )
+
+    y_init = y_values[n, :] * 0 + np.mean(dist_init_err)
+    # plt.plot(x_values, y_init, "k", label="$\small{init}$", lw=line_width * 0.4)
+    # plt.plot(x_values, y_init, "k", lw=line_width * 0.4)
+
+    plt.ylabel("$\mathrm{err}(\mathbf{h}_%i,\hat{\mathbf{h}}_%i)$" %(n+1, n+1))
+    plt.xlabel("$\mathrm{SNR [dB]}$")
+    plt.xticks([7, 9, 12, 16])
+    plt.legend(loc="upper right", ncol=4, columnspacing=0.1, handletextpad=0.05)
+    plt.yticks([i for i in np.arange(y_lim[0] + 1, 0 + 2, 4)])
     plt.ylim(y_lim[0], y_lim[1])
     ax.grid("Off")
     ax.spines["top"].set_visible(False)
@@ -3772,11 +4046,12 @@ def plot_snr_results(
 
     x_values = snr_list
     x_lim = [min(x_values), max(x_values)]
-    x_lim = [1.7, 16]
+    x_lim = [6, 20]
     y_values = np.mean(dist_err, axis=0)
+    y_values_2 = np.mean(dist_err_2, axis=0)
     y_lim = [0, 0]
     y_lim[0] = 0
-    y_lim[1] = 1
+    y_lim[1] = np.min(y_values)
 
     # plot
     k = 1
@@ -3785,16 +4060,22 @@ def plot_snr_results(
     marker = ".b"
 
     plt.plot(x_values, y_values, lw=line_width, color=c)
-    plt.plot(x_values[::k], y_values[::k], marker, label="Learned", lw=line_width)
+    plt.plot(x_values[::k], y_values[::k], marker, label="$CRsAE$", lw=line_width)
 
-    y_init = y_values * 0 + 0.95
-    plt.plot(x_values, y_init, "k", label="Initial", lw=line_width * 0.2)
+    c_2 = "g"
+    marker_2 = "*g"
+    plt.plot(x_values, y_values_2, lw=line_width, color=c_2)
+    plt.plot(x_values[::k], y_values_2[::k], marker_2, label="$LCSC$", lw=line_width)
+
+    y_init = y_values * 0 + np.mean(dist_init_err)
+    plt.plot(x_values, y_init, "k", label="Initial", lw=line_width * 0.4)
 
     plt.ylabel(
         "$\\frac{1}{C} \sum_{c=1}^C\mathrm{err}(\mathbf{h}_c,\hat{\mathbf{h}}_c)$"
     )
     plt.xlabel("$\mathrm{SNR}$")
     plt.xticks([1.5, 4, 9, 16])
+    plt.legend(loc="upper right", ncol=4, columnspacing=0.1, handletextpad=0.05)
     plt.yticks([i for i in np.arange(y_lim[0], y_lim[1] + y_fine, y_fine)])
     plt.ylim(y_lim[0], y_lim[1])
     plt.legend(loc="upper right", ncol=1)
@@ -3811,6 +4092,8 @@ def plot_H_and_miss_false(
     H_learned,
     missed_list,
     false_list,
+    cbp_missed_list,
+    cbp_false_list,
     PATH,
     folder_name,
     file_number,
@@ -3846,11 +4129,12 @@ def plot_H_and_miss_false(
     x_values = np.linspace(0, (dictionary_dim * 1000) / sampling_rate, dictionary_dim)
     x_lim = [0, 1.1 * (dictionary_dim * 1000) / sampling_rate]
     y_lim = [0, 0]
-    y_lim[0] = np.round(1.1 * np.min([np.min(H_init), np.min(H_learned)]), 2)
-    y_lim[1] = np.round(1.5 * np.max([np.max(H_init), np.max(H_learned)]), 2)
+    y_lim[1] = -np.round(1.01 * np.min([np.min(H_init), np.min(H_learned)]), 2)
+    y_lim[0] = -np.round(1.15 * np.max([np.max(H_init), np.max(H_learned)]), 2)
+    print(y_lim)
 
-    if file_number == "2018-08-10-11-56-14":
-        y_lim = [-0.7, 0.7]
+    # if file_number == "2019-01-19-13-22-30":
+    #     y_lim = [-0.33, 0.7]
 
     plt.subplots_adjust(wspace=0, hspace=0)
     # make outer gridspec
@@ -3865,19 +4149,19 @@ def plot_H_and_miss_false(
     k = 4
     for cell in gs1:
         ax = fig.add_subplot(cell)
-        plt.plot(x_values, H_init[:, 0, n], lw=line_width, color="gray")
+        plt.plot(x_values, -H_init[:, 0, n], lw=line_width, color="gray")
         plt.plot(
             x_values[::k],
-            H_init[::k, 0, n],
+            -H_init[::k, 0, n],
             "v",
             markersize=marker_size,
             label="$\mathrm{Initial}$",
             color="gray",
         )
-        plt.plot(x_values, H_learned[:, 0, n], lw=line_width, color="r")
+        plt.plot(x_values, -H_learned[:, 0, n], lw=line_width, color="r")
         plt.plot(
             x_values[::k],
-            H_learned[::k, 0, n],
+            -H_learned[::k, 0, n],
             "*",
             markersize=marker_size,
             label="$\mathrm{Learned}$",
@@ -3888,14 +4172,9 @@ def plot_H_and_miss_false(
         plt.xticks([i for i in np.arange(x_lim[0], x_lim[1], 1.5)])
         if n == 0:
             plt.yticks(
-                [
-                    i
-                    for i in np.arange(
-                        y_lim[0], y_lim[1] + 0.7, (y_lim[1] - y_lim[0]) / 2
-                    )
-                ]
+                np.round([-0.25,0,0.25,0.50,0.75,1.00],2)
             )
-        plt.ylim([y_lim[0] - 0.05, y_lim[1] + 0.1])
+        plt.ylim([y_lim[0], y_lim[1]])
         ax.grid("Off")
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
@@ -3908,33 +4187,34 @@ def plot_H_and_miss_false(
         )
         n += 1
 
-    plt.legend(loc="upper right", ncol=1)
+    plt.legend(loc="upper right", ncol=1, columnspacing=0.1, handletextpad=0.01)
 
     for cell in gs2:
         x_lim = [0, np.round(np.max(missed_list))]
         y_lim = [0, np.round(np.max(false_list))]
 
-        if file_number == "2018-08-10-11-56-14":
-            x_lim[1] = 15
-            y_lim[1] = 25
+        x_lim[1] = 40
+        y_lim[1] = 40
 
         # ax = fig.add_subplot(1, num_conv+1, num_conv+1)
+        k = 10
         ax = fig.add_subplot(cell)
-        plt.plot(missed_list, false_list, lw=line_width, color="black")
-        plt.ylabel("$\mathrm{Estimated\;Spikes\;False\;(\%)}$", fontweight="bold")
+        plt.plot(missed_list[k:], false_list[k:], lw=line_width, color="green", label="CRsAE")
+        plt.plot(cbp_missed_list, cbp_false_list, lw=line_width, color="black", label="CBP")
+        plt.ylabel("$\mathrm{Estimated\;Spikes\;False\;[\%]}$", fontweight="bold")
         plt.yticks(
             np.round(
                 [
                     i
                     for i in np.arange(
                         np.floor(y_lim[0]),
-                        np.ceil(y_lim[1]) + 5,
-                        (y_lim[1] - y_lim[0]) / 5,
+                        np.ceil(10) + 5,
+                        (10 - y_lim[0]) / 1,
                     )
                 ]
             )
         )
-        plt.xlabel("$\mathrm{True\;Spikes\;Missed\;(\%)}$", fontweight="bold")
+        plt.xlabel("$\mathrm{True\;Spikes\;Missed\;[\%]}$", fontweight="bold")
         plt.xticks(
             np.round(
                 [
@@ -3942,13 +4222,14 @@ def plot_H_and_miss_false(
                     for i in np.arange(
                         np.floor(x_lim[0]),
                         np.ceil(x_lim[1]) + 5,
-                        (x_lim[1] - x_lim[0]) / 3,
+                        (x_lim[1] - x_lim[0]) / 4,
                     )
                 ]
             )
         )
         plt.xlim(x_lim)
         plt.ylim(y_lim)
+        plt.legend(loc="upper right", ncol=1, columnspacing=0.1, handletextpad=0.3)
         ax.grid("Off")
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)

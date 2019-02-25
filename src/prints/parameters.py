@@ -1,5 +1,5 @@
 """
-Copyright (c) 2018 CRISP
+Copyright (c) 2019 CRISP
 
 print info.
 
@@ -30,8 +30,6 @@ def print_model_info(folder_name):
     print("num_iterations:", config_m["num_iterations"])
     print("L:", config_m["L"])
     print("twosided:", config_m["twosided"])
-    if "MIMO" in config_m:
-        print("MIMO:", config_m["MIMO"])
     if "alpha" in config_m:
         print("alpha:", config_m["alpha"])
     print("data_space:", config_m["data_space"])

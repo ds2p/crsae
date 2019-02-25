@@ -1,5 +1,5 @@
 """
-Copyright (c) 2018 CRISP
+Copyright (c) 2019 CRISP
 
 classes related to LCSC, etc.
 
@@ -206,9 +206,6 @@ class trainer:
     def get_num_epochs(self):
         return self.num_epochs
 
-    def get_num_train_reset(self):
-        return self.num_train_reset
-
     def get_loss(self):
         return self.loss
 
@@ -264,9 +261,6 @@ class trainer:
 
     def set_num_epochs(self, num_epochs):
         self.num_epochs = num_epochs
-
-    def set_num_train_reset(self, num_train_reset):
-        self.num_train_reset = num_train_reset
 
     def set_fit_time(self, fit_time):
         self.fit_time = fit_time
@@ -648,9 +642,7 @@ class LCSC_1d:
         history = self.autoencoder.fit(
             partial_y_train,
             partial_y_train,
-            epochs=np.int(
-                self.trainer.get_num_epochs() / self.trainer.get_num_train_reset()
-            ),
+            epochs=self.trainer.get_num_epochs(),
             batch_size=self.trainer.get_batch_size(),
             validation_data=(y_val, y_val),
             verbose=self.trainer.get_verbose(),
@@ -693,32 +685,24 @@ class LCSC_1d:
 
         print("start training.")
         fit_start_time = time.time()
-        for train_i in range(self.trainer.get_num_train_reset()):
-            print("train_i:", train_i)
-
-            history = self.autoencoder.fit(
-                partial_y_train,
-                partial_y_train,
-                epochs=np.int(
-                    self.trainer.get_num_epochs() / self.trainer.get_num_train_reset()
-                ),
-                batch_size=self.trainer.get_batch_size(),
-                validation_data=(y_val, y_val),
-                verbose=self.trainer.get_verbose(),
-                shuffle=True,
-                callbacks=self.trainer.get_callbacks(),
-            )
-            # set hisotry
-            self.trainer.set_history(history)
-            # set all h epochs
-            self.update_weights_epochs()
-            # set the trained weights in autoencoder
-            self.update_weights_after_training()
-            # save results
-            if train_i == 0:
-                folder_time = self.save_results(folder_name)
-            else:
-                self.save_results(folder_name, folder_time + "-" + str(train_i))
+        history = self.autoencoder.fit(
+            partial_y_train,
+            partial_y_train,
+            epochs=self.trainer.get_num_epochs(),
+            batch_size=self.trainer.get_batch_size(),
+            validation_data=(y_val, y_val),
+            verbose=self.trainer.get_verbose(),
+            shuffle=True,
+            callbacks=self.trainer.get_callbacks(),
+        )
+        # set hisotry
+        self.trainer.set_history(history)
+        # set all h epochs
+        self.update_weights_epochs()
+        # set the trained weights in autoencoder
+        self.update_weights_after_training()
+        # save results
+        folder_time = self.save_results(folder_name)
 
         fit_time = time.time() - fit_start_time
         self.trainer.set_fit_time(fit_time)
@@ -745,7 +729,7 @@ class LCSC_1d:
         if time == 1.234:
             time = strftime("%Y-%m-%d-%H-%M-%S", gmtime())
         hf = h5py.File(
-            "{}/experiments/{}/results/results_training_{}.h5".format(
+            "{}/experiments/{}/results/LCSC_results_training_{}.h5".format(
                 PATH, folder_name, time
             ),
             "w",

@@ -1,8 +1,11 @@
 """
+Copyright (c) 2019 CRISP
+
 Single layer convolutional autoencoders.
 
 :author: Bahareh Tolooshams
 """
+
 from keras.models import Model
 from keras.layers import Conv1D, Conv2D, Input, add, Dense, Flatten, Reshape
 from keras.layers import ZeroPadding1D, ZeroPadding2D, Lambda

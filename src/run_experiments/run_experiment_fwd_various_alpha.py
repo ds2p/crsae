@@ -1,5 +1,5 @@
 """
-Copyright (c) 2018 CRISP
+Copyright (c) 2019 CRISP
 
 functions to run experiment with CRsAE.
 
@@ -62,7 +62,6 @@ def simulated(folder_name):
             config_m["L"],
             config_m["twosided"],
             config_m["lambda_trainable"],
-            config_m["MIMO"],
             config_m["alpha"],
             config_m["num_channels"],
         )
@@ -74,7 +73,6 @@ def simulated(folder_name):
             config_m["num_iterations"],
             config_m["L"],
             config_m["twosided"],
-            config_m["MIMO"],
             config_m["alpha"],
             config_m["num_channels"],
         )
@@ -82,13 +80,10 @@ def simulated(folder_name):
     # load data
     print("load data.")
     hf = h5py.File("{}/experiments/{}/data/data.h5".format(PATH, folder_name), "r")
-    if config_m["MIMO"]:
-        print("Error: This script is only for single channel model")
-    else:
-        y_train_noisy = np.array(hf.get("y_train_noisy"))
-        y_test_noisy = np.array(hf.get("y_test_noisy"))
-        noiseSTD = np.array(hf.get("noiseSTD"))
-        print("noiseSTD:", noiseSTD)
+    y_train_noisy = np.array(hf.get("y_train_noisy"))
+    y_test_noisy = np.array(hf.get("y_test_noisy"))
+    noiseSTD = np.array(hf.get("noiseSTD"))
+    print("noiseSTD:", noiseSTD)
     H_true = np.load("{}/experiments/{}/data/H_true.npy".format(PATH, folder_name))
     ################################################
     # build model knowing noiseSTD
@@ -118,15 +113,12 @@ def simulated(folder_name):
         crsae.set_lambda(lambda_donoho * alpha)
         y_test_hat = crsae.denoise(y_test_noisy)
 
-        if config_m["MIMO"]:
-            print("Error: This script is only for single channel model")
-        else:
-            g_ch.create_dataset(
-                "y_test_hat_{}".format(ctr),
-                data=y_test_hat,
-                compression="gzip",
-                compression_opts=9,
-            )
+        g_ch.create_dataset(
+            "y_test_hat_{}".format(ctr),
+            data=y_test_hat,
+            compression="gzip",
+            compression_opts=9,
+        )
         ctr += 1
     hf.close()
 

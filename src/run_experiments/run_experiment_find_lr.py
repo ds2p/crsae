@@ -1,5 +1,5 @@
 """
-Copyright (c) 2018 CRISP
+Copyright (c) 2019 CRISP
 
 functions to run experiment with CRsAE to find lr, etc.
 
@@ -8,7 +8,7 @@ functions to run experiment with CRsAE to find lr, etc.
 import os
 
 # set this to the GPU name/number you want to use
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 import warnings
 
@@ -63,7 +63,6 @@ def real(folder_name):
             config_m["L"],
             config_m["twosided"],
             False,
-            config_m["MIMO"],
             config_m["alpha"],
             config_m["num_channels"],
         )
@@ -76,7 +75,6 @@ def real(folder_name):
             config_m["L"],
             config_m["twosided"],
             False,
-            config_m["MIMO"],
             config_m["alpha"],
             config_m["num_channels"],
         )
@@ -86,7 +84,6 @@ def real(folder_name):
     # trainer parameters
     print_training_info(folder_name)
     crsae.trainer.set_num_epochs(config_m["num_epochs"])
-    crsae.trainer.set_num_train_reset(config_m["num_train_reset"])
     crsae.trainer.set_batch_size(config_m["batch_size"])
     crsae.trainer.set_verbose(config_m["verbose"])
     crsae.trainer.set_val_split(config_m["val_split"])
@@ -113,23 +110,21 @@ def real(folder_name):
             crsae.trainer.optimizer.set_nesterov(config_m["nesterov"])
     if config_m["lambda_trainable"]:
         crsae.trainer.optimizer.set_lambda_lr(config_m["lambda_lr"])
-
-    ################################################
-    # build model knowing noiseSTD
-    crsae.build_model(config_d["noiseSTD"])
     ################################################
     # load data
     print("load data.")
     hf = h5py.File("{}/experiments/{}/data/data.h5".format(PATH, folder_name), "r")
-    if config_m["MIMO"]:
-        y_train = []
-        y_test = []
-        for ch in range(config_m["num_channels"]):
-            g_ch = hf.get("{}".format(ch))
-            y_train.append(np.array(g_ch.get("y_train")))
-    else:
-        g_ch = hf.get("{}".format(config_d["ch"]))
-        y_train = np.array(g_ch.get("y_train"))
+    g_ch = hf.get("{}".format(config_d["ch"]))
+    y_train = np.array(g_ch.get("y_train"))
+    noiseSTD = np.array(g_ch.get("noiseSTD"))
+    ################################################
+    # build model knowing noiseSTD
+    crsae.build_model(noiseSTD)
+    ################################################
+    # initialize filter
+    if crsae.trainer.get_close():
+        H_init = np.load("{}/experiments/{}/data/H_init.npy".format(PATH, folder_name))
+        crsae.set_H(H_init)
     ################################################
     # find_lr
     crsae.find_lr(y_train, folder_name, num_epochs=2)
@@ -165,7 +160,6 @@ def simulated(folder_name):
             config_m["L"],
             config_m["twosided"],
             False,
-            config_m["MIMO"],
             config_m["alpha"],
             config_m["num_channels"],
         )
@@ -178,7 +172,6 @@ def simulated(folder_name):
             config_m["L"],
             config_m["twosided"],
             False,
-            config_m["MIMO"],
             config_m["alpha"],
             config_m["num_channels"],
         )
@@ -188,7 +181,6 @@ def simulated(folder_name):
     # trainer parameters
     print_training_info(folder_name)
     crsae.trainer.set_num_epochs(config_m["num_epochs"])
-    crsae.trainer.set_num_train_reset(config_m["num_train_reset"])
     crsae.trainer.set_batch_size(config_m["batch_size"])
     crsae.trainer.set_verbose(config_m["verbose"])
     crsae.trainer.set_val_split(config_m["val_split"])
@@ -219,13 +211,10 @@ def simulated(folder_name):
     # load data
     print("load data.")
     hf = h5py.File("{}/experiments/{}/data/data.h5".format(PATH, folder_name), "r")
-    if config_m["MIMO"]:
-        print("Error: This script is only for single channel model")
-    else:
-        y_train_noisy = np.array(hf.get("y_train_noisy"))
-        y_test_noisy = np.array(hf.get("y_test_noisy"))
-        noiseSTD = np.array(hf.get("noiseSTD"))
-        print("noiseSTD:", noiseSTD)
+    y_train_noisy = np.array(hf.get("y_train_noisy"))
+    y_test_noisy = np.array(hf.get("y_test_noisy"))
+    noiseSTD = np.array(hf.get("noiseSTD"))
+    print("noiseSTD:", noiseSTD)
     ################################################
     # build model knowing noiseSTD
     crsae.build_model(noiseSTD)

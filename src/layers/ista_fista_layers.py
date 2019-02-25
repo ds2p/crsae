@@ -179,6 +179,8 @@ class FISTA_1d(Conv1D):
         :param lambda_trainable: set True for lambda to be trainable
         :param twosided: set True for twosided relu
         :param num_iterations: max number of iteraitons of FISTA
+        :param lambda_signel: True for sharing one lambda for all filters
+        :param lambda_EM: False for backprop, True for closed-form given code
         :param kwargs:
         """
         self.tied_layer = tied_layer
@@ -291,7 +293,6 @@ class FISTA_1d(Conv1D):
                     tf.zeros((self.output_dim1, 1), dtype=tf.float32),
                 )
                 bias_vector = tf.concat([bias_vector, temp], axis=1)
-
             # add bias
             output_pos = K.bias_add(pre_z_new, -1 * bias_vector)
             if self.twosided:
@@ -381,6 +382,8 @@ class FISTA_2d(Conv2D):
         :param lambda_trainable: set True for lambda to be trainable
         :param twosided: set True for twosided relu
         :param num_iterations: max number of iteraitons of FISTA
+        :param lambda_signel: True for sharing one lambda for all filters
+        :param lambda_EM: False for backprop, True for closed-form given code
         :param kwargs:
         """
         self.tied_layer = tied_layer

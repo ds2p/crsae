@@ -68,6 +68,10 @@ Project Organization
     │   │   ├── TLAE.py
     │   │   └── single_layer_autoencoders.py
     │   │
+    │   ├── optimizers
+    │   │   ├── adam_optimizer.py
+    │   │   └── sgd_optimizer.py
+    │   │
     │   ├── plotter                      <- Functions to plot                    
     │   │   ├── plot_experiment_results.py
     │   │   └── plot_helpers.py
@@ -76,10 +80,13 @@ Project Organization
     │   │   └── parameters.py
     │   │
     │   └── run_experiments              <- Functions to run experiments for train and predict.
-    │       ├── extract_results.py
-    │       ├── extract_results_helpers.py
-    │       ├── run_experiment.py
-    │       ├── run_experiment_find_lr.py
-    │       └── run_experiment_fwd_various_alpha.py
+    │   │   ├── extract_results.py
+    │   │   ├── extract_results_helpers.py
+    │   │   ├── run_experiment.py
+    │   │   ├── run_experiment_find_lr.py
+    │   │   └── run_experiment_fwd_various_alpha.py
+    │   │
+    │   └── trainers
+    │       └── trainers.py
     │
     └── tests
