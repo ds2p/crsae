@@ -628,7 +628,7 @@ def plot_miss_false(
     fig = newfig(scale=scale, scale_height=scale_height)
     ax = fig.add_subplot(111)
     if file_number == "kmeans":
-        plt.plot(missed_list, false_list, '.', lw=line_width, color="black")
+        plt.plot(missed_list, false_list, ".", lw=line_width, color="black")
     else:
         plt.plot(missed_list, false_list, lw=line_width, color="black")
     plt.ylabel("$\mathrm{Estimated\;Spikes\;False}$", fontweight="bold")
@@ -638,7 +638,9 @@ def plot_miss_false(
         )
     plt.xlabel("$\mathrm{True\;Spikes\;Missed}$", fontweight="bold")
     if x_lim[1] - x_lim[0] != 0:
-        plt.xticks([i for i in np.arange(x_lim[0], x_lim[1], (x_lim[1] - x_lim[0]) / 5)])
+        plt.xticks(
+            [i for i in np.arange(x_lim[0], x_lim[1], (x_lim[1] - x_lim[0]) / 5)]
+        )
 
     ax.grid("Off")
     ax.spines["top"].set_visible(False)
@@ -689,7 +691,9 @@ def plot_crsae_cbp_miss_false(
     # plot new fig
     fig = newfig(scale=scale, scale_height=scale_height)
     ax = fig.add_subplot(111)
-    plt.plot(crsae_missed_list, crsae_false_list, lw=line_width, color="black", label="CRsAE")
+    plt.plot(
+        crsae_missed_list, crsae_false_list, lw=line_width, color="black", label="CRsAE"
+    )
     plt.plot(cbp_missed_list, cbp_false_list, lw=line_width, color="red", label="CBP")
     plt.ylabel("$\mathrm{Estimated\;Spikes\;False\;[\%]}$", fontweight="bold")
     if y_lim[1] - y_lim[0] != 0:
@@ -906,16 +910,15 @@ def plot_H_real_2d(
 
     k = 4
     for n in range(num_conv):
-        if (num_conv<=8):
+        if num_conv <= 8:
             ax = fig.add_subplot(1, num_conv, n + 1)
-        elif(num_conv<=16):
+        elif num_conv <= 16:
             ax = fig.add_subplot(2, 8, n + 1)
-        elif(num_conv<=32):
+        elif num_conv <= 32:
             ax = fig.add_subplot(4, 8, n + 1)
         else:
             ax = fig.add_subplot(8, 8, n + 1)
-        plt.imshow(H_learned[:, :, 0, n], cmap='gray')
-
+        plt.imshow(H_learned[:, :, 0, n], cmap="gray")
 
         plt.xticks([])
         plt.yticks([])
@@ -2627,8 +2630,8 @@ def plot_denoise_real(
 ):
 
     a = 10000
-    y_test = y_test[:,a:a+3000]
-    y_test_hat = y_test_hat[:,a:a+3000]
+    y_test = y_test[:, a : a + 3000]
+    y_test_hat = y_test_hat[:, a : a + 3000]
 
     # upadte plot parameters
     update_plot_parameters(
@@ -2655,21 +2658,13 @@ def plot_denoise_real(
 
     ax = fig.add_subplot(111)
 
-    plt.plot(
-        x_values, y_test[i, :, 0], lw=line_width, label="$y_{noisy}$", color="g"
-    )
-    plt.plot(
-        x_values, y_test_hat[i, :, 0], lw=line_width, label="$\hat y$", color="r"
-    )
+    plt.plot(x_values, y_test[i, :, 0], lw=line_width, label="$y_{noisy}$", color="g")
+    plt.plot(x_values, y_test_hat[i, :, 0], lw=line_width, label="$\hat y$", color="r")
 
     plt.ylabel("$\mathrm{Voltage\;[mV]}$", fontweight="bold")
     plt.xlabel("$\mathrm{Time\;[ms]}$", fontweight="bold")
-    plt.xticks(
-        [i for i in np.arange(x_lim[0], x_lim[1], (x_lim[1] - x_lim[0]) / 5)]
-    )
-    plt.yticks(
-        [i for i in np.arange(y_lim[0], y_lim[1], (y_lim[1] - y_lim[0]) / 5)]
-    )
+    plt.xticks([i for i in np.arange(x_lim[0], x_lim[1], (x_lim[1] - x_lim[0]) / 5)])
+    plt.yticks([i for i in np.arange(y_lim[0], y_lim[1], (y_lim[1] - y_lim[0]) / 5)])
     ax.grid("Off")
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
@@ -2681,6 +2676,7 @@ def plot_denoise_real(
             PATH, folder_name, file_number
         )
     )
+
 
 def plot_denoise_real_2d(
     i,
@@ -2713,7 +2709,7 @@ def plot_denoise_real_2d(
     fig = newfig(scale=scale, scale_height=scale_height)
 
     ax = fig.add_subplot(121)
-    plt.imshow(y_test[i, :, :, 0], cmap='gray')
+    plt.imshow(y_test[i, :, :, 0], cmap="gray")
     plt.xticks([])
     plt.yticks([])
     ax.grid("Off")
@@ -2722,7 +2718,7 @@ def plot_denoise_real_2d(
     plt.title("$input$", fontname="Times New Roman", fontweight="bold")
 
     ax = fig.add_subplot(122)
-    plt.imshow(y_test_hat[i, :, :, 0], cmap='gray')
+    plt.imshow(y_test_hat[i, :, :, 0], cmap="gray")
     plt.xticks([])
     plt.yticks([])
     ax.grid("Off")
@@ -2885,9 +2881,7 @@ def plot_separate_real(
         if n != 0:
             ax.spines["left"].set_visible(False)
         plt.title(
-            "$\mathbf{y_%i}$" % (n + 1),
-            fontname="Times New Roman",
-            fontweight="bold",
+            "$\mathbf{y_%i}$" % (n + 1), fontname="Times New Roman", fontweight="bold"
         )
         if n == 0:
             plt.legend(loc="upper left", ncol=1)
@@ -2938,12 +2932,10 @@ def plot_separate_real_series(
     x_lim = [0, 1.1 * (dur * 1000) / sampling_rate]
     y_lim = [0, 0]
     y_lim[0] = np.round(
-        1.1
-        * np.min([np.min(y_series_hat_separate[0, (i * dur) : ((i + 1) * dur), :])])
+        1.1 * np.min([np.min(y_series_hat_separate[0, (i * dur) : ((i + 1) * dur), :])])
     )
     y_lim[1] = np.round(
-        1.5
-        * np.max([np.max(y_series_hat_separate[0, (i * dur) : ((i + 1) * dur), :])])
+        1.5 * np.max([np.max(y_series_hat_separate[0, (i * dur) : ((i + 1) * dur), :])])
     )
 
     for n in range(num_conv):
@@ -2971,9 +2963,7 @@ def plot_separate_real_series(
         if n != 0:
             ax.spines["left"].set_visible(False)
         plt.title(
-            "$\mathbf{y_%i}$" % (n + 1),
-            fontname="Times New Roman",
-            fontweight="bold",
+            "$\mathbf{y_%i}$" % (n + 1), fontname="Times New Roman", fontweight="bold"
         )
         if n == 0:
             plt.legend(loc="upper left", ncol=1)
@@ -3028,11 +3018,7 @@ def plot_code_real(
     for n in range(num_conv):
         ax = fig.add_subplot(1, num_conv, n + 1)
         plt.plot(
-            x_values,
-            z_test_hat[i, :, n],
-            lw=line_width,
-            label="$\hat z$",
-            color="r",
+            x_values, z_test_hat[i, :, n], lw=line_width, label="$\hat z$", color="r"
         )
 
         plt.ylabel("$\mathrm{Voltage\;[mV]}$", fontweight="bold")
@@ -3042,12 +3028,7 @@ def plot_code_real(
         )
         if y_lim[1] - y_lim[0] != 0:
             plt.yticks(
-                [
-                    i
-                    for i in np.arange(
-                        y_lim[0], y_lim[1], (y_lim[1] - y_lim[0]) / 5
-                    )
-                ]
+                [i for i in np.arange(y_lim[0], y_lim[1], (y_lim[1] - y_lim[0]) / 5)]
             )
         ax.grid("Off")
         ax.spines["top"].set_visible(False)
@@ -3055,9 +3036,7 @@ def plot_code_real(
         if n != 0:
             ax.spines["left"].set_visible(False)
         plt.title(
-            "$\mathbf{z_%i}$" % (n + 1),
-            fontname="Times New Roman",
-            fontweight="bold",
+            "$\mathbf{z_%i}$" % (n + 1), fontname="Times New Roman", fontweight="bold"
         )
 
         plt.legend(loc="upper right", ncol=1)
@@ -3101,15 +3080,15 @@ def plot_code_real_2d(
 
     k = 4
     for n in range(num_conv):
-        if (num_conv<=8):
+        if num_conv <= 8:
             ax = fig.add_subplot(1, num_conv, n + 1)
-        elif(num_conv<=16):
+        elif num_conv <= 16:
             ax = fig.add_subplot(2, 8, n + 1)
-        elif(num_conv<=32):
+        elif num_conv <= 32:
             ax = fig.add_subplot(4, 8, n + 1)
         else:
             ax = fig.add_subplot(8, 8, n + 1)
-        plt.imshow(z_test_hat[i, :, :, n], cmap='gray')
+        plt.imshow(z_test_hat[i, :, :, n], cmap="gray")
 
         plt.xticks([])
         plt.yticks([])
@@ -3121,7 +3100,9 @@ def plot_code_real_2d(
             ax.spines["left"].set_visible(False)
             ax.get_yaxis().set_visible(False)
         plt.title(
-            "%i" % (np.sum(np.sum(np.abs(z_test_hat[i, :, :, n])))), fontname="Times New Roman", fontweight="bold"
+            "%i" % (np.sum(np.sum(np.abs(z_test_hat[i, :, :, n])))),
+            fontname="Times New Roman",
+            fontweight="bold",
         )
 
         fig.tight_layout(pad=0.5, w_pad=0.5, h_pad=0)
@@ -4027,7 +4008,7 @@ def plot_snr_results(
     # plt.plot(x_values, y_init, "k", label="$\small{init}$", lw=line_width * 0.4)
     # plt.plot(x_values, y_init, "k", lw=line_width * 0.4)
 
-    plt.ylabel("$\mathrm{err}(\mathbf{h}_%i,\hat{\mathbf{h}}_%i)$" %(n+1, n+1))
+    plt.ylabel("$\mathrm{err}(\mathbf{h}_%i,\hat{\mathbf{h}}_%i)$" % (n + 1, n + 1))
     plt.xlabel("$\mathrm{SNR [dB]}$")
     plt.xticks([7, 9, 12, 16])
     plt.legend(loc="upper right", ncol=4, columnspacing=0.1, handletextpad=0.05)
@@ -4171,9 +4152,7 @@ def plot_H_and_miss_false(
         plt.xlabel("$\mathrm{Time\;[ms]}$", fontweight="bold")
         plt.xticks([i for i in np.arange(x_lim[0], x_lim[1], 1.5)])
         if n == 0:
-            plt.yticks(
-                np.round([-0.25,0,0.25,0.50,0.75,1.00],2)
-            )
+            plt.yticks(np.round([-0.25, 0, 0.25, 0.50, 0.75, 1.00], 2))
         plt.ylim([y_lim[0], y_lim[1]])
         ax.grid("Off")
         ax.spines["top"].set_visible(False)
@@ -4199,17 +4178,19 @@ def plot_H_and_miss_false(
         # ax = fig.add_subplot(1, num_conv+1, num_conv+1)
         k = 10
         ax = fig.add_subplot(cell)
-        plt.plot(missed_list[k:], false_list[k:], lw=line_width, color="green", label="CRsAE")
-        plt.plot(cbp_missed_list, cbp_false_list, lw=line_width, color="black", label="CBP")
+        plt.plot(
+            missed_list[k:], false_list[k:], lw=line_width, color="green", label="CRsAE"
+        )
+        plt.plot(
+            cbp_missed_list, cbp_false_list, lw=line_width, color="black", label="CBP"
+        )
         plt.ylabel("$\mathrm{Estimated\;Spikes\;False\;[\%]}$", fontweight="bold")
         plt.yticks(
             np.round(
                 [
                     i
                     for i in np.arange(
-                        np.floor(y_lim[0]),
-                        np.ceil(10) + 5,
-                        (10 - y_lim[0]) / 1,
+                        np.floor(y_lim[0]), np.ceil(10) + 5, (10 - y_lim[0]) / 1
                     )
                 ]
             )

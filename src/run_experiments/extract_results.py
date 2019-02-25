@@ -43,12 +43,15 @@ from src.run_experiments.extract_results_helpers import *
 def extract_results():
     pass
 
+
 @extract_results.command()
 @click.option("--folder_name", default="", help="folder name in experiment directory")
 def run_mnist(folder_name):
     # load model parameters
     print("load model parameters.")
-    file = open("{}/experiments/{}/config/config_model.yml".format(PATH, folder_name), "rb")
+    file = open(
+        "{}/experiments/{}/config/config_model.yml".format(PATH, folder_name), "rb"
+    )
     config_m = yaml.load(file)
     file.close()
     # load data parameters
@@ -62,14 +65,14 @@ def run_mnist(folder_name):
     print("load data.")
     (y_train, label_train), (y_test, label_test) = mnist.load_data()
     # convert to float32
-    y_train = y_train.astype('float32')
-    y_test = y_test.astype('float32')
+    y_train = y_train.astype("float32")
+    y_test = y_test.astype("float32")
     # normalize
     y_train /= 255
     y_test /= 255
 
-    y_train = np.expand_dims(y_train,axis=-1)
-    y_test = np.expand_dims(y_test[:config_d["num_test"],:,:],axis=-1)
+    y_train = np.expand_dims(y_train, axis=-1)
+    y_test = np.expand_dims(y_test[: config_d["num_test"], :, :], axis=-1)
 
     print(y_train.shape)
     print(y_test.shape)
@@ -198,7 +201,6 @@ def run_mnist(folder_name):
                     number_font=20,
                 )
 
-
             # plot dictionary
             plot_H_real_2d(
                 H_init,
@@ -295,13 +297,14 @@ def run_mnist(folder_name):
                 yaml.dump(summary, outfile, default_flow_style=False)
 
 
-
 @extract_results.command()
 @click.option("--folder_name", default="", help="folder name in experiment directory")
 def real(folder_name):
     # load model parameters
     print("load model parameters.")
-    file = open("{}/experiments/{}/config/config_model.yml".format(PATH, folder_name), "rb")
+    file = open(
+        "{}/experiments/{}/config/config_model.yml".format(PATH, folder_name), "rb"
+    )
     config_m = yaml.load(file)
     file.close()
     # load data parameters
@@ -674,9 +677,7 @@ def real_series(folder_name):
             y_test_hat_separate = np.array(g_ch.get("y_train_hat_separate"))
             y_series_hat = np.array(g_ch.get("y_series_hat"))
             z_series_hat = np.array(g_ch.get("z_series_hat"))
-            y_series_hat_separate = np.array(
-                g_ch.get("y_series_hat_separate")
-            )
+            y_series_hat_separate = np.array(g_ch.get("y_series_hat_separate"))
             H_init = np.array(g_ch.get(("H_init")))
 
             lr_iterations = np.array(hf_training.get("lr_iterations"))
@@ -697,9 +698,7 @@ def real_series(folder_name):
             train_loss = np.array(hf_training.get("train_loss"))
             if config_m["lambda_trainable"]:
                 val_lambda_loss = np.array(hf_training.get("val_lambda_loss"))
-                train_lambda_loss = np.array(
-                    hf_training.get("train_lambda_loss")
-                )
+                train_lambda_loss = np.array(hf_training.get("train_lambda_loss"))
 
             monitor_val_loss = np.array(hf_training.get(config_m["loss_type"]))
             H_epochs = np.array(hf_training.get("H_epochs"))
@@ -768,11 +767,9 @@ def real_series(folder_name):
                 data = sio.loadmat(filename)
                 miss_single = data["cummissrate"] * 100
 
-
                 filename = "{}/data/filters/false_data_single.mat".format(PATH)
                 data = sio.loadmat(filename)
                 false_single = data["cumfprate"] * 100
-
 
                 plot_crsae_cbp_miss_false(
                     missed_list,
@@ -978,7 +975,6 @@ def real_series(folder_name):
             scale = 4
             scale_height = 0.5
 
-
             plot_denoise_real(
                 0,
                 y_series,
@@ -1168,9 +1164,7 @@ def simulated(folder_name):
             train_loss = np.array(hf_training.get("train_loss"))
             if config_m["lambda_trainable"]:
                 val_lambda_loss = np.array(hf_training.get("val_lambda_loss"))
-                train_lambda_loss = np.array(
-                    hf_training.get("train_lambda_loss")
-                )
+                train_lambda_loss = np.array(hf_training.get("train_lambda_loss"))
 
             monitor_val_loss = np.array(hf_training.get(config_m["loss_type"]))
             H_epochs = np.array(hf_training.get("H_epochs"))
@@ -2247,6 +2241,7 @@ def tlae_simulated(folder_name):
                 number_font=40,
             )
 
+
 @extract_results.command()
 @click.option("--folder_name", default="", help="folder name in experiment directory")
 def loss_crsae_vs_sporco(folder_name):
@@ -2346,9 +2341,7 @@ def lr_loss(folder_name):
 
 @extract_results.command()
 @click.option(
-    "--folder_names",
-    default=[],
-    help="list of folder names in experiment directory",
+    "--folder_names", default=[], help="list of folder names in experiment directory"
 )
 def rmse_vs_alpha(folder_names):
     RMSE = []
@@ -2671,9 +2664,7 @@ def err_crsae_vs_lcsc():
 
 @extract_results.command()
 @click.option(
-    "--folder_names",
-    default=[],
-    help="list of folder names in experiment directory",
+    "--folder_names", default=[], help="list of folder names in experiment directory"
 )
 def snr_vs_err(folder_names):
     snr_list = []
@@ -2861,17 +2852,14 @@ def fwd_alpha(folder_name):
                     RMSE_y_yhat_test = np.sqrt(
                         np.mean(
                             np.power(
-                                (np.squeeze(y_test_noisy) - np.squeeze(y_test_hat)),
-                                2,
+                                (np.squeeze(y_test_noisy) - np.squeeze(y_test_hat)), 2
                             ),
                             axis=0,
                         )
                     )
                     RMSE_ytrue_yhat_test = np.sqrt(
                         np.mean(
-                            np.power(
-                                (np.squeeze(y_test) - np.squeeze(y_test_hat)), 2
-                            ),
+                            np.power((np.squeeze(y_test) - np.squeeze(y_test_hat)), 2),
                             axis=0,
                         )
                     )
@@ -2880,10 +2868,7 @@ def fwd_alpha(folder_name):
                         np.sqrt(
                             np.mean(
                                 np.power(
-                                    (
-                                        np.squeeze(y_test_noisy)
-                                        - np.squeeze(y_test_hat)
-                                    ),
+                                    (np.squeeze(y_test_noisy) - np.squeeze(y_test_hat)),
                                     2,
                                 ),
                                 axis=1,
@@ -2931,16 +2916,12 @@ def fwd_alpha(folder_name):
 def kmeans_spikesorting(folder_name):
     # load model parameters
     print("load model parameters.")
-    file = open(
-        "../experiments/{}/config/config_model.yml".format(folder_name), "rb"
-    )
+    file = open("../experiments/{}/config/config_model.yml".format(folder_name), "rb")
     config_m = yaml.load(file)
     file.close()
     # load data parameters
     print("load data parameters.")
-    file = open(
-        "../experiments/{}/config/config_data.yml".format(folder_name), "rb"
-    )
+    file = open("../experiments/{}/config/config_data.yml".format(folder_name), "rb")
     config_d = yaml.load(file)
     file.close()
     # load data
@@ -2973,7 +2954,7 @@ def kmeans_spikesorting(folder_name):
     th_list = np.double(np.arange(60, 300, 5))
     th_list /= max_y
 
-    flip_threshold = -1 # negative one if spikes have their max be negative.
+    flip_threshold = -1  # negative one if spikes have their max be negative.
 
     missed_per_all = []
     false_per_all = []
@@ -2997,17 +2978,19 @@ def kmeans_spikesorting(folder_name):
         #         break
         #     index_curr = indices[index_next[0]]
 
-        index_peak = find_peaks(flip_threshold*y, height=th)[0]
+        index_peak = find_peaks(flip_threshold * y, height=th)[0]
         print(index_peak)
 
-        samples = np.zeros((100000000,dictionary_dim))
+        samples = np.zeros((100000000, dictionary_dim))
         ctr = 0
         for index in index_peak:
-            sample = y[index-np.int(dictionary_dim/2):index+np.int(dictionary_dim/2)]
-            if(sample.shape[0] == dictionary_dim):
-                samples[ctr,:] = sample
+            sample = y[
+                index - np.int(dictionary_dim / 2) : index + np.int(dictionary_dim / 2)
+            ]
+            if sample.shape[0] == dictionary_dim:
+                samples[ctr, :] = sample
                 ctr += 1
-        X = samples[:ctr,:]
+        X = samples[:ctr, :]
 
         pca = PCA(n_components=10)
         # find PCA components
@@ -3024,17 +3007,14 @@ def kmeans_spikesorting(folder_name):
         index_1 = []
         for index in index_peak:
             # we don't have intracellular data for first 2.9 seconds of data
-            if (index < 29800):
+            if index < 29800:
                 continue
-            if (X_labels[ctr] == 0):
+            if X_labels[ctr] == 0:
                 index_0.append(index)
             else:
                 index_1.append(index)
 
-        event_hat = [index_0,index_1]
-
-
-
+        event_hat = [index_0, index_1]
 
         missed_events = np.zeros((num_conv))
         false_events = np.zeros((num_conv))
@@ -3049,7 +3029,9 @@ def kmeans_spikesorting(folder_name):
                 event_distance = event[k] - event_hat[n]
                 # this is temp only for this dataset as intracellualr appears after the spikes
                 # event_distance = event_distance[np.where(event_distance >= 0)]
-                close_event = event_distance[np.where(abs(event_distance) < event_range)]
+                close_event = event_distance[
+                    np.where(abs(event_distance) < event_range)
+                ]
                 if len(close_event) == 0:
                     missed_events[n] += 1
             # loop over predicted events
@@ -3058,7 +3040,9 @@ def kmeans_spikesorting(folder_name):
                 event_distance = event - event_hat[n][k]
                 # this is temp only for this dataset as intracellualr appears after the spikes
                 # event_distance = event_distance[np.where(event_distance >= 0)]
-                close_event = event_distance[np.where(abs(event_distance) < event_range)]
+                close_event = event_distance[
+                    np.where(abs(event_distance) < event_range)
+                ]
                 if len(close_event) == 0:
                     false_events[n] += 1
 
@@ -3073,22 +3057,21 @@ def kmeans_spikesorting(folder_name):
     missed_per_all = np.asarray(missed_per_all)
     false_per_all = np.asarray(false_per_all)
 
-    print(missed_per_all,false_per_all)
-    print((missed_per_all + false_per_all)/2)
+    print(missed_per_all, false_per_all)
+    print((missed_per_all + false_per_all) / 2)
 
     for n in range(num_conv):
-        best_index = np.argmin((missed_per_all[:,n] + false_per_all[:,n])/2)
-        print("best for filter %s" %n, missed_per_all[best_index,n], false_per_all[best_index,n])
-
-
-
-
-
+        best_index = np.argmin((missed_per_all[:, n] + false_per_all[:, n]) / 2)
+        print(
+            "best for filter %s" % n,
+            missed_per_all[best_index, n],
+            false_per_all[best_index, n],
+        )
 
     for n in range(num_conv):
         plot_miss_false(
-            missed_per_all[:,n],
-            false_per_all[:,n],
+            missed_per_all[:, n],
+            false_per_all[:, n],
             PATH,
             folder_name,
             "kmeans",
@@ -3106,13 +3089,6 @@ def kmeans_spikesorting(folder_name):
         )
 
     return missed_per_all, false_per_all
-
-
-
-
-
-
-
 
 
 if __name__ == "__main__":

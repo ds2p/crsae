@@ -40,6 +40,7 @@ from src.run_experiments.extract_results_helpers import *
 def run_experiment():
     pass
 
+
 @run_experiment.command()
 @click.option("--folder_name", default="", help="folder name in experiment directory")
 def real(folder_name):
@@ -243,16 +244,12 @@ def real(folder_name):
 def real_series(folder_name):
     # load model parameters
     print("load model parameters.")
-    file = open(
-        "../experiments/{}/config/config_model.yml".format(folder_name), "rb"
-    )
+    file = open("../experiments/{}/config/config_model.yml".format(folder_name), "rb")
     config_m = yaml.load(file)
     file.close()
     # load data parameters
     print("load data parameters.")
-    file = open(
-        "../experiments/{}/config/config_data.yml".format(folder_name), "rb"
-    )
+    file = open("../experiments/{}/config/config_data.yml".format(folder_name), "rb")
     config_d = yaml.load(file)
     file.close()
     ################################################
@@ -473,7 +470,7 @@ def real_series(folder_name):
     ################################################
     # predict
     print("do prediciton.")
-    if ((config_d["num_test"]) != 0):
+    if (config_d["num_test"]) != 0:
         z_test_hat = crsae.encode(y_test)
         y_test_hat = crsae.denoise(y_test)
         y_test_hat_separate = crsae.separate(y_test)
@@ -493,9 +490,7 @@ def real_series(folder_name):
     # save prediction
     print("save prediction results.")
     hf = h5py.File(
-        "../experiments/{}/results/results_prediction_{}.h5".format(
-            folder_name, time
-        ),
+        "../experiments/{}/results/results_prediction_{}.h5".format(folder_name, time),
         "w",
     )
     g_ch = hf.create_group("{}".format(config_d["ch"]))
@@ -506,16 +501,10 @@ def real_series(folder_name):
         "y_test_hat", data=y_test_hat, compression="gzip", compression_opts=9
     )
     g_ch.create_dataset(
-        "z_series_hat",
-        data=z_series_hat,
-        compression="gzip",
-        compression_opts=9,
+        "z_series_hat", data=z_series_hat, compression="gzip", compression_opts=9
     )
     g_ch.create_dataset(
-        "y_series_hat",
-        data=y_series_hat,
-        compression="gzip",
-        compression_opts=9,
+        "y_series_hat", data=y_series_hat, compression="gzip", compression_opts=9
     )
     g_ch.create_dataset(
         "y_test_hat_separate",
@@ -678,9 +667,7 @@ def simulated(folder_name):
     crsae.build_model(noiseSTD)
     # initialize filter
     if crsae.trainer.get_close():
-        H_true = np.load(
-            "{}/experiments/{}/data/H_true.npy".format(PATH, folder_name)
-        )
+        H_true = np.load("{}/experiments/{}/data/H_true.npy".format(PATH, folder_name))
         H_noisestd = 0.5 * np.std(np.squeeze(H_true), axis=0)
         print(H_noisestd)
         flag = 1
@@ -703,8 +690,7 @@ def simulated(folder_name):
     l1_norm_z_test = np.mean(np.sum(np.sum(np.abs(z_test), axis=2), axis=1), axis=0)
     print("l1_norm from true code:", l1_norm_z_test)
     lambda_estimate = (
-        (config_m["input_dim"] - config_m["dictionary_dim"] + 1)
-        * config_m["num_conv"]
+        (config_m["input_dim"] - config_m["dictionary_dim"] + 1) * config_m["num_conv"]
     ) / l1_norm_z_test
     print("lambda estimate from true code:", lambda_estimate)
 
@@ -715,8 +701,7 @@ def simulated(folder_name):
     )
     print("l1_norm from code through FISTA:", l1_norm_z_test_from_FISTA)
     lambda_estimate_from_FISTA = (
-        (config_m["input_dim"] - config_m["dictionary_dim"] + 1)
-        * config_m["num_conv"]
+        (config_m["input_dim"] - config_m["dictionary_dim"] + 1) * config_m["num_conv"]
     ) / l1_norm_z_test_from_FISTA
     print("lambda estimate from code through FISTA:", lambda_estimate_from_FISTA)
     ################################################
@@ -1040,9 +1025,7 @@ def tlae_simulated(folder_name):
     crsae.build_model(noiseSTD)
     # initialize filter
     if crsae.trainer.get_close():
-        H_true = np.load(
-            "{}/experiments/{}/data/H_true.npy".format(PATH, folder_name)
-        )
+        H_true = np.load("{}/experiments/{}/data/H_true.npy".format(PATH, folder_name))
         H_noisestd = 0.5 * np.std(np.squeeze(H_true), axis=0)
         # H_noisestd = 0
         print(H_noisestd)
@@ -1289,7 +1272,12 @@ def simulated_csc_speed(folder_name):
         csc_times.append(time.time() - csc_start_time)
     csc_time = np.mean(csc_times)
 
-    print("csc time: {} s for {} examples each {} length".format(csc_time,y_train_noisy.shape[0],y_train_noisy.shape[1]))
+    print(
+        "csc time: {} s for {} examples each {} length".format(
+            csc_time, y_train_noisy.shape[0], y_train_noisy.shape[1]
+        )
+    )
+
 
 @run_experiment.command()
 @click.option("--folder_name", default="", help="folder name in experiment directory")

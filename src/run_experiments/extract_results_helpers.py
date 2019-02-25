@@ -132,14 +132,18 @@ def miss_false_event(events, events_hat, event_range, conv):
         for k in range(len(event_hn)):
             ctr_true_event += 1
             event_distance = event_hn[k] - event_hn_hat
-            close_event = event_distance[np.where(event_distance[event_distance>=0] < event_range)]
+            close_event = event_distance[
+                np.where(event_distance[event_distance >= 0] < event_range)
+            ]
             if len(close_event) == 0:
                 missed_events[i] += 1
         # loop over predicted events
         for k in range(len(event_hn_hat)):
             ctr_pred_event += 1
             event_distance = event_hn - event_hn_hat[k]
-            close_event = event_distance[np.where(event_distance[event_distance>=0] < event_range)]
+            close_event = event_distance[
+                np.where(event_distance[event_distance >= 0] < event_range)
+            ]
             if len(close_event) == 0:
                 false_events[i] += 1
     missed_per = 0

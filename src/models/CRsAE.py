@@ -31,6 +31,7 @@ from src.callbacks.lrfinder_callback import LRFinder
 
 PATH = "../"
 
+
 class CRsAE_1d:
     def __init__(
         self,
@@ -1569,12 +1570,11 @@ class CRsAE_2d:
         flat_code = Flatten()(zt)
         flat_code_normalized = Lambda(lambda x: K.l2_normalize(x, axis=1))(flat_code)
         # model = Dense(units=64,activation='relu', name='D1')(flat_code)
-        label = Dense(units=10,activation='softmax', name='D1')(flat_code_normalized)
+        label = Dense(units=10, activation="softmax", name="D1")(flat_code_normalized)
 
         classifier = Model(y, label)
 
         return classifier
-
 
     def initialize_H(self):
         self.H = np.random.randn(
@@ -2268,7 +2268,6 @@ class CRsAE_2d:
         # set the trained weights in autoencoder
         self.update_H_after_training()
 
-
     def train_classification(self, y_train, label_train):
         num_train = y_train.shape[0]
         # divide train data into train and val sets
@@ -2280,9 +2279,13 @@ class CRsAE_2d:
         print("start training.")
         fit_start_time = time.time()
 
-        self.classifier.compile(optimizer='rmsprop',loss='categorical_crossentropy',metrics=['accuracy'])
+        self.classifier.compile(
+            optimizer="rmsprop", loss="categorical_crossentropy", metrics=["accuracy"]
+        )
         # fit (train)
-        history = self.classifier.fit(y_train, label_train, epochs=5, batch_size=256, validation_split=0.1)
+        history = self.classifier.fit(
+            y_train, label_train, epochs=5, batch_size=256, validation_split=0.1
+        )
 
     def evaluate_classifier(self, y_test, label_test):
         return self.classifier.evaluate(y_test, label_test)

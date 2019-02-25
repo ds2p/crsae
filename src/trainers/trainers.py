@@ -20,6 +20,7 @@ from src.callbacks.clr_callback import CyclicLR
 
 PATH = "../"
 
+
 class trainer:
     def __init__(
         self,
