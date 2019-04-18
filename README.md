@@ -1,10 +1,9 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 
-
-Deep residual auto-encoder for expectation maximization-based dictionary learning
+CRsAE (constraint recurrent sparse auto-encoder)
 ==============================
 
-Constraint recurrent sparse auto-encoder for convolutional sparse coding
+Deep residual auto-encoder for expectation maximization-based dictionary learning
 
 Project Organization
 ------------
