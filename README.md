@@ -3,9 +3,8 @@
 
 Deep residual auto-encoder for expectation maximization-based dictionary learning
 ==============================
-Constraint recurrent sparse auto-encoder for convolutional sparse coding
-==============================
 
+Constraint recurrent sparse auto-encoder for convolutional sparse coding
 
 Project Organization
 ------------
