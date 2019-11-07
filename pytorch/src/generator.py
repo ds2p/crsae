@@ -35,7 +35,6 @@ def get_MNIST_loader(batch_size, trainable=True, shuffle=False):
             transform=torchvision.transforms.Compose(
                 [
                     torchvision.transforms.ToTensor(),
-                    torchvision.transforms.Normalize((0.1307,), (0.3081,)),
                 ]
             ),
         ),
