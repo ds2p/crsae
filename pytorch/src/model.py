@@ -45,42 +45,36 @@ class CRsAE1D(torch.nn.Module):
         self.stride = hyp["stride"]
         self.twosided = hyp["twosided"]
 
-        self.H = torch.nn.ConvTranspose1d(
-            self.num_conv,
-            1,
-            kernel_size=self.dictionary_dim,
-            stride=self.stride,
-            bias=False,
-        )
-        self.HT = torch.nn.Conv1d(
-            1,
-            self.num_conv,
-            kernel_size=self.dictionary_dim,
-            stride=self.stride,
-            bias=False,
-        )
-
-        if H is not None:
-            self.H.weight.data = H.clone()
+        if H is None:
+            H = torch.randn(
+                (self.num_conv, 1, self.dictionary_dim),
+                device=self.device,
+            )
+            H = F.normalize(H, p=2, dim=-1)
+        self.register_parameter("H", torch.nn.Parameter(H))
 
         self.relu = torch.nn.ReLU()
 
-        self.H.weight.data = self.H.weight.data.to(self.device)
-        self.HT.weight.data = self.H.weight.data
+    def get_param(self, name):
+        return self.state_dict(keep_vars=True)[name]
 
     def normalize(self):
-        self.H.weight.data = F.normalize(self.H.weight.data, dim=-1)
-        self.HT.weight.data = self.H.weight.data
+        self.get_param("H").data = F.normalize(
+            self.get_param("H").data, p=2, dim=-1
+        )
 
     def zero_mean(self):
-        self.H.weight.data -= torch.mean(self.H.weight.data, dim=0)
-        self.HT.weight.data = self.H.weight.data
+
+        self.get_param("H").data -= torch.mean(
+            self.get_param("H").data, dim=-0
+        )
 
     def forward(self, x):
         num_batches = x.shape[0]
 
         D_in = x.shape[2]
-        D_enc = D_in - self.dictionary_dim + 1
+        D_enc = F.conv1d(
+            x, self.get_param("H"), stride=self.stride).shape[-1]
 
         self.lam = self.sigma * torch.sqrt(
             2 * torch.log(torch.zeros(1, device=self.device) + (self.num_conv * D_enc))
@@ -91,8 +85,8 @@ class CRsAE1D(torch.nn.Module):
         x_new = torch.zeros(num_batches, self.num_conv, D_enc, device=self.device)
         t_old = torch.tensor(1, device=self.device).float()
         for t in range(self.T):
-            H_wt = x - self.H(yk)
-            x_new = yk + self.HT(H_wt) / self.L
+            H_wt = x - F.conv_transpose1d(yk, self.get_param("H"), stride=self.stride)
+            x_new = yk + F.conv2d(H_wt, self.get_param("H"), stride=self.stride) / self.L
             if self.twosided:
                 x_new = self.relu(torch.abs(x_new) - self.lam / self.L) * torch.sign(
                     x_new
@@ -106,7 +100,7 @@ class CRsAE1D(torch.nn.Module):
             x_old = x_new
             t_old = t_new
 
-        z = self.H(x_new)
+        z = F.conv_transpose1d(x_new, self.get_param("H"), stride=self.stride)
 
         return z, x_new, self.lam
 
@@ -128,36 +122,28 @@ class CRsAE2D(torch.nn.Module):
         if self.use_lam:
             self.lam = hyp["lam"]
 
-        self.H = torch.nn.ConvTranspose2d(
-            self.num_conv,
-            1,
-            kernel_size=self.dictionary_dim,
-            stride=self.stride,
-            bias=False,
-        )
-        self.HT = torch.nn.Conv2d(
-            1,
-            self.num_conv,
-            kernel_size=self.dictionary_dim,
-            stride=self.stride,
-            bias=False,
-        )
-
-        if H is not None:
-            self.H.weight.data = H.clone()
+        if H is None:
+            H = torch.randn(
+                (self.num_conv, 1, self.dictionary_dim, self.dictionary_dim),
+                device=self.device,
+            )
+            H = F.normalize(H, p="fro", dim=(-1, -2))
+        self.register_parameter("H", torch.nn.Parameter(H))
 
         self.relu = torch.nn.ReLU()
 
-        self.H.weight.data = self.H.weight.data.to(self.device)
-        self.HT.weight.data = self.H.weight.data
+    def get_param(self, name):
+        return self.state_dict(keep_vars=True)[name]
 
     def normalize(self):
-        self.H.weight.data = F.normalize(self.H.weight.data, p="fro", dim=(-1, -2))
-        self.HT.weight.data = self.H.weight.data
+        self.get_param("H").data = F.normalize(
+            self.get_param("H").data, p="fro", dim=(-1, -2)
+        )
 
     def zero_mean(self):
-        self.H.weight.data -= torch.mean(self.H.weight.data, dim=0)
-        self.HT.weight.data = self.H.weight.data
+        self.get_param("H").data -= torch.mean(
+            self.get_param("H").data, dim=0
+        )
 
     def split_image(self, x):
         if self.stride == 1:
@@ -208,8 +194,12 @@ class CRsAE2D(torch.nn.Module):
 
         num_batches = x_batched_padded.shape[0]
 
-        D_enc1 = self.HT(x_batched_padded).shape[2]
-        D_enc2 = self.HT(x_batched_padded).shape[3]
+        D_enc1 = F.conv2d(
+            x_batched_padded, self.get_param("H"), stride=self.stride
+        ).shape[2]
+        D_enc2 = F.conv2d(
+            x_batched_padded, self.get_param("H"), stride=self.stride
+        ).shape[3]
 
         if not self.use_lam:
             self.lam = self.sigma * torch.sqrt(
@@ -236,7 +226,10 @@ class CRsAE2D(torch.nn.Module):
         t_old = torch.tensor(1, device=self.device).float()
 
         for t in range(self.T):
-            x_new = yk + self.HT(x_batched_padded - self.H(yk)) / self.L
+            Hyk = F.conv_transpose2d(yk, self.get_param("H"), stride=self.stride)
+            x_tilda = x_batched_padded - Hyk
+
+            x_new = yk + F.conv2d(x_tilda, self.get_param("H"), stride=self.stride) / self.L
 
             if self.twosided:
                 x_new = (x_new > (self.lam / self.L)).float() * (
@@ -256,9 +249,10 @@ class CRsAE2D(torch.nn.Module):
             t_old = t_new
 
         z = (
-            torch.masked_select(self.H(x_new), valids_batched.byte()).reshape(
-                x.shape[0], self.stride ** 2, *x.shape[1:]
-            )
+            torch.masked_select(
+                F.conv_transpose2d(x_new, self.get_param("H"), stride=self.stride),
+                valids_batched.byte(),
+            ).reshape(x.shape[0], self.stride ** 2, *x.shape[1:])
         ).mean(dim=1, keepdim=False)
 
         return z, x_new, self.lam
@@ -279,36 +273,29 @@ class CRsAE2DTrainableBias(torch.nn.Module):
         self.twosided = hyp["twosided"]
         self.sigma = hyp["sigma"]
 
-        self.H = torch.nn.ConvTranspose2d(
-            self.num_conv,
-            1,
-            kernel_size=[self.dictionary_dim, self.dictionary_dim],
-            bias=False,
-        )
-        self.HT = torch.nn.Conv2d(
-            1,
-            self.num_conv,
-            kernel_size=[self.dictionary_dim, self.dictionary_dim],
-            bias=False,
-        )
-
-        if H is not None:
-            self.H.weight.data = H.clone()
+        if H is None:
+            H = torch.randn(
+                (self.num_conv, 1, self.dictionary_dim, self.dictionary_dim),
+                device=self.device,
+            )
+            H = F.normalize(H, p="fro", dim=(-1, -2))
+        self.register_parameter("H", torch.nn.Parameter(H))
 
         self.relu = RELUTwosided(
             self.num_conv, self.lam, self.L, self.sigma, self.device
         )
 
-        self.H.weight.data = self.H.weight.data.to(self.device)
-        self.HT.weight.data = self.H.weight.data
+    def get_param(self, name):
+        return self.state_dict(keep_vars=True)[name]
 
     def normalize(self):
-        self.H.weight.data = F.normalize(self.H.weight.data, p="fro", dim=(-1, -2))
-        self.HT.weight.data = self.H.weight.data
+        self.get_param("H").data = F.normalize(
+            self.get_param("H").data, p="fro", dim=(-1, -2)
+        )
 
     def zero_mean(self):
-        self.H.weight.data -= torch.mean(self.H.weight.data, dim=0)
-        self.HT.weight.data = self.H.weight.data
+        self.get_param("H").data -= torch.mean(
+            self.get_param("H").data, dim=0
 
     def split_image(self, x):
         if self.stride == 1:
@@ -359,8 +346,12 @@ class CRsAE2DTrainableBias(torch.nn.Module):
 
         num_batches = x_batched_padded.shape[0]
 
-        D_enc1 = self.HT(x_batched_padded).shape[2]
-        D_enc2 = self.HT(x_batched_padded).shape[3]
+        D_enc1 = F.conv2d(
+            x_batched_padded, self.get_param("H"), stride=self.stride
+        ).shape[2]
+        D_enc2 = F.conv2d(
+            x_batched_padded, self.get_param("H"), stride=self.stride
+        ).shape[3]
 
         x_old = torch.zeros(
             num_batches, self.num_conv, D_enc1, D_enc2, device=self.device
@@ -379,7 +370,10 @@ class CRsAE2DTrainableBias(torch.nn.Module):
         t_old = torch.tensor(1, device=self.device).float()
 
         for t in range(self.T):
-            x_new = yk + self.HT(x_batched_padded - self.H(yk)) / self.L
+            Hyk = F.conv_transpose2d(yk, self.get_param("H"), stride=self.stride)
+            x_tilda = x_batched_padded - Hyk
+
+            x_new = yk + F.conv2d(x_tilda, self.get_param("H"), stride=self.stride) / self.L
 
             x_new = self.relu(x_new)
 
@@ -390,9 +384,10 @@ class CRsAE2DTrainableBias(torch.nn.Module):
             t_old = t_new
 
         z = (
-            torch.masked_select(self.H(x_new), valids_batched.byte()).reshape(
-                x.shape[0], self.stride ** 2, *x.shape[1:]
-            )
+            torch.masked_select(
+                F.conv_transpose2d(x_new, self.get_param("H"), stride=self.stride),
+                valids_batched.byte(),
+            ).reshape(x.shape[0], self.stride ** 2, *x.shape[1:])
         ).mean(dim=1, keepdim=False)
 
         return z, x_new, self.relu.lam

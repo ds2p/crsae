@@ -85,7 +85,7 @@ def run(cfg):
     else:
         print("model does not exist!")
 
-    torch.save(net.H.weight.data, os.path.join(PATH, "H_init.pt"))
+    torch.save(net.get_param("H"), os.path.join(PATH, "H_init.pt"))
 
     if hyp["trainable_bias"]:
         criterion_ae = torch.nn.MSELoss()
