@@ -127,10 +127,7 @@ def train_ae(
 
         torch.save(loss_all, os.path.join(PATH, "loss_epoch{}.pt".format(epoch)))
 
-        torch.save(net.get_param("H"), os.path.join(PATH, "H_epoch{}.pt".format(epoch)))
-
-        if network == "CRsAE2DTrainableBias":
-            torch.save(net.relu.lam, os.path.join(PATH, "lam_epoch{}.pt".format(epoch)))
+        torch.save(net, os.path.join(PATH, "model_epoch{}.pt".format(epoch)))
 
         print(
             "epoch [{}/{}], loss:{:.8f} ".format(
@@ -251,10 +248,7 @@ def train_ae_withtrainablebias(
 
         torch.save(loss_all, os.path.join(PATH, "loss_epoch{}.pt".format(epoch)))
 
-        torch.save(net.get_param("H"), os.path.join(PATH, "H_epoch{}.pt".format(epoch)))
-
-        if network == "CRsAE2DTrainableBias":
-            torch.save(net.relu.lam, os.path.join(PATH, "lam_epoch{}.pt".format(epoch)))
+        torch.save(net, os.path.join(PATH, "model_epoch{}.pt".format(epoch)))
 
         print(
             "epoch [{}/{}], loss:{:.8f} ".format(
