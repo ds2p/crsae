@@ -46,10 +46,7 @@ class CRsAE1D(torch.nn.Module):
         self.twosided = hyp["twosided"]
 
         if H is None:
-            H = torch.randn(
-                (self.num_conv, 1, self.dictionary_dim),
-                device=self.device,
-            )
+            H = torch.randn((self.num_conv, 1, self.dictionary_dim), device=self.device)
             H = F.normalize(H, p=2, dim=-1)
         self.register_parameter("H", torch.nn.Parameter(H))
 
@@ -59,22 +56,17 @@ class CRsAE1D(torch.nn.Module):
         return self.state_dict(keep_vars=True)[name]
 
     def normalize(self):
-        self.get_param("H").data = F.normalize(
-            self.get_param("H").data, p=2, dim=-1
-        )
+        self.get_param("H").data = F.normalize(self.get_param("H").data, p=2, dim=-1)
 
     def zero_mean(self):
 
-        self.get_param("H").data -= torch.mean(
-            self.get_param("H").data, dim=-0
-        )
+        self.get_param("H").data -= torch.mean(self.get_param("H").data, dim=-0)
 
     def forward(self, x):
         num_batches = x.shape[0]
 
         D_in = x.shape[2]
-        D_enc = F.conv1d(
-            x, self.get_param("H"), stride=self.stride).shape[-1]
+        D_enc = F.conv1d(x, self.get_param("H"), stride=self.stride).shape[-1]
 
         self.lam = self.sigma * torch.sqrt(
             2 * torch.log(torch.zeros(1, device=self.device) + (self.num_conv * D_enc))
@@ -86,7 +78,9 @@ class CRsAE1D(torch.nn.Module):
         t_old = torch.tensor(1, device=self.device).float()
         for t in range(self.T):
             H_wt = x - F.conv_transpose1d(yk, self.get_param("H"), stride=self.stride)
-            x_new = yk + F.conv2d(H_wt, self.get_param("H"), stride=self.stride) / self.L
+            x_new = (
+                yk + F.conv2d(H_wt, self.get_param("H"), stride=self.stride) / self.L
+            )
             if self.twosided:
                 x_new = self.relu(torch.abs(x_new) - self.lam / self.L) * torch.sign(
                     x_new
@@ -141,9 +135,7 @@ class CRsAE2D(torch.nn.Module):
         )
 
     def zero_mean(self):
-        self.get_param("H").data -= torch.mean(
-            self.get_param("H").data, dim=0
-        )
+        self.get_param("H").data -= torch.mean(self.get_param("H").data, dim=0)
 
     def split_image(self, x):
         if self.stride == 1:
@@ -229,7 +221,9 @@ class CRsAE2D(torch.nn.Module):
             Hyk = F.conv_transpose2d(yk, self.get_param("H"), stride=self.stride)
             x_tilda = x_batched_padded - Hyk
 
-            x_new = yk + F.conv2d(x_tilda, self.get_param("H"), stride=self.stride) / self.L
+            x_new = (
+                yk + F.conv2d(x_tilda, self.get_param("H"), stride=self.stride) / self.L
+            )
 
             if self.twosided:
                 x_new = (x_new > (self.lam / self.L)).float() * (
@@ -294,8 +288,7 @@ class CRsAE2DTrainableBias(torch.nn.Module):
         )
 
     def zero_mean(self):
-        self.get_param("H").data -= torch.mean(
-            self.get_param("H").data, dim=0
+        self.get_param("H").data -= torch.mean(self.get_param("H").data, dim=0)
 
     def split_image(self, x):
         if self.stride == 1:
@@ -373,7 +366,9 @@ class CRsAE2DTrainableBias(torch.nn.Module):
             Hyk = F.conv_transpose2d(yk, self.get_param("H"), stride=self.stride)
             x_tilda = x_batched_padded - Hyk
 
-            x_new = yk + F.conv2d(x_tilda, self.get_param("H"), stride=self.stride) / self.L
+            x_new = (
+                yk + F.conv2d(x_tilda, self.get_param("H"), stride=self.stride) / self.L
+            )
 
             x_new = self.relu(x_new)
 
