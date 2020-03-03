@@ -79,7 +79,7 @@ class CRsAE1D(torch.nn.Module):
         for t in range(self.T):
             H_wt = x - F.conv_transpose1d(yk, self.get_param("H"), stride=self.stride)
             x_new = (
-                yk + F.conv2d(H_wt, self.get_param("H"), stride=self.stride) / self.L
+                yk + F.conv1d(H_wt, self.get_param("H"), stride=self.stride) / self.L
             )
             if self.twosided:
                 x_new = self.relu(torch.abs(x_new) - self.lam / self.L) * torch.sign(
