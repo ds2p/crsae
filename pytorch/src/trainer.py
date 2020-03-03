@@ -211,9 +211,9 @@ def train_ae_withtrainablebias(
             optimizer_lam.zero_grad()
 
             loss_ae.backward(retain_graph=True)
-            loss_lam.backward()
-
             optimizer_ae.step()
+            
+            loss_lam.backward()
             optimizer_lam.step()
 
             if zero_mean_filters:
