@@ -150,6 +150,7 @@ def get_VOC_loader(
         )
     return loader
 
+
 def get_path_loader(batch_size, image_path, shuffle=False, crop_dim=None):
     if crop_dim is not None:
         loader = torch.utils.data.DataLoader(

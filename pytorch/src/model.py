@@ -510,6 +510,7 @@ class CRsAE2DUntied(torch.nn.Module):
 
         return z, x_new, self.lam
 
+
 class CRsAE2DUntiedFreeBias(torch.nn.Module):
     def __init__(self, hyp, H=None):
         super(CRsAE2DUntiedFreeBias, self).__init__()

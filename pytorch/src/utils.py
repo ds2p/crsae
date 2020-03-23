@@ -11,6 +11,7 @@ import torch.nn.functional as F
 import numpy as np
 from pytorch_msssim import MS_SSIM
 
+
 class MSSSIM_l1(torch.nn.Module):
     def __init__(self):
         super(MSSSIM_l1, self).__init__()
