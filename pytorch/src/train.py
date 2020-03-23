@@ -1,5 +1,5 @@
 """
-Copyright (c) 2019 CRISP
+Copyright (c) 2020 CRISP
 
 train
 
@@ -7,14 +7,25 @@ train
 """
 
 import torch
+from torch.utils.data import Dataset, DataLoader
 import torch.optim as optim
 import torch.nn.functional as F
+import torchvision
+import matplotlib.pyplot as plt
 import numpy as np
 import pickle
+
 from sparselandtools.dictionaries import DCTDictionary
 import os
+from tqdm import tqdm
 from datetime import datetime
 from sacred import Experiment
+
+from sacred import SETTINGS
+SETTINGS.CONFIG.READ_ONLY_CONFIG = False
+
+from scipy.special import expit
+from pytorch_msssim import MS_SSIM
 
 import sys
 
@@ -49,17 +60,24 @@ def run(cfg):
         pickle.dump(hyp, file)
 
     print("load data.")
+    if hyp["dataset"] == "path":
+        train_loader = generator.get_path_loader(
+            hyp["batch_size"],
+            hyp["train_path"],
+            shuffle=hyp["shuffle"],
+            crop_dim=hyp["crop_dim"],
+        )
+        test_loader = generator.get_path_loader(1, hyp["test_path"], shuffle=False)
     if hyp["dataset"] == "VOC":
-        train_loader, _ = generator.get_VOC_loaders_detection(
-            hyp["batch_size"], crop_dim=hyp["crop_dim"], shuffle=hyp["shuffle"]
+        train_loader, _ = generator.get_VOC_loaders(
+            hyp["batch_size"],
+            crop_dim=hyp["crop_dim"],
+            shuffle=hyp["shuffle"],
+            image_set=hyp["image_set"],
+            segmentation=hyp["segmentation"],
+            year=hyp["year"],
         )
-        test_loader = generator.get_lena_loader(
-            hyp["batch_size"], hyp["test_path"], shuffle=False
-        )
-    elif hyp["dataset"] == "MNIST":
-        train_loader, test_loader = generator.get_MNIST_loaders(
-            hyp["batch_size"], shuffle=hyp["shuffle"]
-        )
+        test_loader = generator.get_path_loader(1, hyp["test_path"], shuffle=False)
     else:
         print("dataset is not implemented.")
 
@@ -78,27 +96,49 @@ def run(cfg):
     print("create model.")
     if hyp["network"] == "CRsAE1D":
         net = model.CRsAE1D(hyp, H_init)
+    elif hyp["network"] == "CRsAE1DTrainableBias":
+        net = model.CRsAE1DTrainableBias(hyp, H_init)
     elif hyp["network"] == "CRsAE2D":
         net = model.CRsAE2D(hyp, H_init)
+    elif hyp["network"] == "CRsAE2DFreeBias":
+        net = model.CRsAE2DFreeBias(hyp, H_init)
+    elif hyp["network"] == "CRsAE2DUntied":
+        net = model.CRsAE2DUntied(hyp, H_init)
+    elif hyp["network"] == "CRsAE2DUntiedFreeBias":
+        net = model.CRsAE2DUntiedFreeBias(hyp, H_init)
     elif hyp["network"] == "CRsAE2DTrainableBias":
         net = model.CRsAE2DTrainableBias(hyp, H_init)
+    elif hyp["network"] == "CRsAE2DUntiedTrainableBias":
+        net = model.CRsAE2DUntiedTrainableBias(hyp, H_init)
     else:
         print("model does not exist!")
 
     torch.save(net, os.path.join(PATH, "model_init.pt"))
 
     if hyp["trainable_bias"]:
-        criterion_ae = torch.nn.MSELoss()
+        if hyp["loss"] == "MSE":
+            criterion_ae = torch.nn.MSELoss()
+        elif hyp["loss"] == "L1":
+            criterion_ae = torch.nn.L1Loss()
+        elif hyp["loss"] == "MSSSIM_l1":
+            criterion_ae = utils.MSSSIM_l1()
         criterion_lam = utils.LambdaLoss2D()
 
         param_ae = []
         param_lam = []
         ctr = 0
+        if hyp["network"] == "CRsAE2DUntiedTrainableBias":
+            a = 3
+        else:
+            a = 1
         for param in net.parameters():
-            if ctr == 2:
+
+            if ctr == a:
                 param_lam.append(param)
+                print("lam", param.shape)
             else:
                 param_ae.append(param)
+                print("ae", param.shape)
 
             ctr += 1
 
@@ -113,6 +153,8 @@ def run(cfg):
             criterion = torch.nn.MSELoss()
         elif hyp["loss"] == "L1":
             criterion = torch.nn.L1Loss()
+        elif hyp["loss"] == "MSSSIM_l1":
+            criterion = utils.MSSSIM_l1()
         optimizer = optim.Adam(net.parameters(), lr=hyp["lr"], eps=1e-3)
 
         if hyp["cyclic"]:

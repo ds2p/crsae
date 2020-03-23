@@ -1,5 +1,5 @@
 """
-Copyright (c) 2019 CRISP
+Copyright (c) 2020 CRISP
 
 data generator
 
@@ -31,7 +31,6 @@ def train_ae(
     info_period = hyp["info_period"]
     noiseSTD = hyp["noiseSTD"]
     device = hyp["device"]
-    zero_mean_filters = hyp["zero_mean_filters"]
     normalize = hyp["normalize"]
     network = hyp["network"]
     supervised = hyp["supervised"]
@@ -55,8 +54,8 @@ def train_ae(
 
                     psnr.append(
                         utils.PSNR(
-                            img_test[0, 0, :, :].detach().cpu().numpy(),
-                            img_test_hat[0, 0, :, :].detach().cpu().numpy(),
+                            img_test[0, 0, :, :].clone().detach().cpu().numpy(),
+                            img_test_hat[0, 0, :, :].clone().detach().cpu().numpy(),
                         )
                     )
                 np.save(os.path.join(PATH, "psnr_init.npy"), np.array(psnr))
@@ -89,8 +88,6 @@ def train_ae(
             loss.backward()
             optimizer.step()
 
-            if zero_mean_filters:
-                net.zero_mean()
             if normalize:
                 net.normalize()
 
@@ -114,8 +111,8 @@ def train_ae(
 
                         psnr.append(
                             utils.PSNR(
-                                img_test[0, 0, :, :].detach().cpu().numpy(),
-                                img_test_hat[0, 0, :, :].detach().cpu().numpy(),
+                                img_test[0, 0, :, :].clone().detach().cpu().numpy(),
+                                img_test_hat[0, 0, :, :].clone().detach().cpu().numpy(),
                             )
                         )
                     np.save(
@@ -159,7 +156,6 @@ def train_ae_withtrainablebias(
 
     noiseSTD = hyp["noiseSTD"]
     device = hyp["device"]
-    zero_mean_filters = hyp["zero_mean_filters"]
     normalize = hyp["normalize"]
     network = hyp["network"]
     supervised = hyp["supervised"]
@@ -177,8 +173,8 @@ def train_ae_withtrainablebias(
 
                     psnr.append(
                         utils.PSNR(
-                            img_test[0, 0, :, :].detach().cpu().numpy(),
-                            img_test_hat[0, 0, :, :].detach().cpu().numpy(),
+                            img_test[0, 0, :, :].clone().detach().cpu().numpy(),
+                            img_test_hat[0, 0, :, :].clone().detach().cpu().numpy(),
                         )
                     )
                 np.save(os.path.join(PATH, "psnr_init.npy"), np.array(psnr))
@@ -188,6 +184,8 @@ def train_ae_withtrainablebias(
         scheduler.step()
         loss_all = 0
         for idx, (img, _) in tqdm(enumerate(data_loader)):
+            optimizer_ae.zero_grad()
+            optimizer_lam.zero_grad()
             if supervised:
                 img = img.to(device)
                 noise = noiseSTD / 255 * torch.randn(img.shape).to(device)
@@ -212,12 +210,10 @@ def train_ae_withtrainablebias(
 
             loss_ae.backward(retain_graph=True)
             optimizer_ae.step()
-            
+
             loss_lam.backward()
             optimizer_lam.step()
 
-            if zero_mean_filters:
-                net.zero_mean()
             if normalize:
                 net.normalize()
 
@@ -239,11 +235,14 @@ def train_ae_withtrainablebias(
 
                         psnr.append(
                             utils.PSNR(
-                                img_test[0, 0, :, :].detach().cpu().numpy(),
-                                img_test_hat[0, 0, :, :].detach().cpu().numpy(),
+                                img_test[0, 0, :, :].clone().detach().cpu().numpy(),
+                                img_test_hat[0, 0, :, :].clone().detach().cpu().numpy(),
                             )
                         )
-                    np.save(os.path.join(PATH, "psnr_init.npy"), np.array(psnr))
+                    np.save(
+                        os.path.join(PATH, "psnr_epoch{}.npy".format(epoch)),
+                        np.array(psnr),
+                    )
                     print("PSNR: {}".format(np.round(np.array(psnr), decimals=4)))
 
         torch.save(loss_all, os.path.join(PATH, "loss_epoch{}.pt".format(epoch)))

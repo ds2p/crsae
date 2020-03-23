@@ -1,5 +1,5 @@
 """
-Copyright (c) 2019 CRISP
+Copyright (c) 2020 CRISP
 
 data generator
 
@@ -43,124 +43,147 @@ def get_MNIST_loader(batch_size, trainable=True, shuffle=False):
 
 
 def get_VOC_loaders(
-    batch_size, crop_dim=(250, 250), shuffle=False, train_batch=None, test_batch=None
+    batch_size,
+    crop_dim=(250, 250),
+    shuffle=False,
+    image_set="train",
+    segmentation=True,
+    year="2012",
+    train_batch=None,
+    test_batch=None,
 ):
     if train_batch == None:
         train_loader = get_VOC_loader(
-            batch_size, image_set="train", crop_dim=crop_dim, shuffle=shuffle
+            batch_size,
+            image_set=image_set,
+            crop_dim=crop_dim,
+            shuffle=shuffle,
+            segmentation=segmentation,
+            year=year,
         )
     else:
         train_loader = get_VOC_loader(
-            train_batch, image_set="train", crop_dim=crop_dim, shuffle=shuffle
+            train_batch,
+            image_set=image_set,
+            crop_dim=crop_dim,
+            shuffle=shuffle,
+            segmentation=segmentation,
+            year=year,
         )
 
     if test_batch == None:
-        test_loader = get_VOC_loader(batch_size, image_set="val", shuffle=shuffle)
+        test_loader = get_VOC_loader(1, image_set="val", shuffle=shuffle)
     else:
         test_loader = get_VOC_loader(test_batch, image_set="val", shuffle=shuffle)
     return train_loader, test_loader
 
 
-def get_VOC_loader(batch_size, image_set, crop_dim=(250, 250), shuffle=False):
-    loader = torch.utils.data.DataLoader(
-        torchvision.datasets.VOCSegmentation(
-            "../data",
-            year="2012",
-            image_set=image_set,
-            download=True,
-            target_transform=torchvision.transforms.Compose(
-                [
-                    torchvision.transforms.Grayscale(),
-                    torchvision.transforms.RandomCrop(
-                        (1, 1),
-                        padding=None,
-                        pad_if_needed=True,
-                        fill=0,
-                        padding_mode="constant",
-                    ),
-                    torchvision.transforms.ToTensor(),
-                ]
-            ),
-            transform=torchvision.transforms.Compose(
-                [
-                    torchvision.transforms.Grayscale(),
-                    torchvision.transforms.RandomCrop(
-                        crop_dim,
-                        padding=None,
-                        pad_if_needed=True,
-                        fill=0,
-                        padding_mode="constant",
-                    ),
-                    torchvision.transforms.RandomHorizontalFlip(),
-                    torchvision.transforms.RandomVerticalFlip(),
-                    torchvision.transforms.ToTensor(),
-                ]
-            ),
-        ),
-        batch_size=batch_size,
-        shuffle=shuffle,
-    )
-    return loader
-
-
-def get_VOC_loaders_detection(
-    batch_size, crop_dim=(250, 250), shuffle=False, train_batch=None, test_batch=None
+def get_VOC_loader(
+    batch_size,
+    image_set,
+    crop_dim=(250, 250),
+    shuffle=False,
+    segmentation=True,
+    year="2012",
 ):
-    if train_batch == None:
-        train_loader = get_VOC_loader_detection(
-            batch_size, image_set="train", crop_dim=crop_dim, shuffle=shuffle
-        )
-    else:
-        train_loader = get_VOC_loader_detection(
-            train_batch, image_set="train", crop_dim=crop_dim, shuffle=shuffle
-        )
-
-    if test_batch == None:
-        test_loader = get_VOC_loader(batch_size, image_set="val", shuffle=shuffle)
-    else:
-        test_loader = get_VOC_loader(test_batch, image_set="val", shuffle=shuffle)
-    return train_loader, test_loader
-
-
-def get_VOC_loader_detection(batch_size, image_set, crop_dim=(250, 250), shuffle=False):
-    loader = torch.utils.data.DataLoader(
-        torchvision.datasets.VOCDetection(
-            "../data",
-            year="2012",
-            image_set=image_set,
-            download=True,
-            target_transform=None,
-            transform=torchvision.transforms.Compose(
-                [
-                    torchvision.transforms.Grayscale(),
-                    torchvision.transforms.RandomCrop(
-                        crop_dim,
-                        padding=None,
-                        pad_if_needed=True,
-                        fill=0,
-                        padding_mode="constant",
-                    ),
-                    torchvision.transforms.RandomHorizontalFlip(),
-                    torchvision.transforms.RandomVerticalFlip(),
-                    torchvision.transforms.ToTensor(),
-                ]
+    if segmentation:
+        loader = torch.utils.data.DataLoader(
+            torchvision.datasets.VOCSegmentation(
+                "../data",
+                year=year,
+                image_set=image_set,
+                download=True,
+                target_transform=torchvision.transforms.Compose(
+                    [
+                        torchvision.transforms.Grayscale(),
+                        torchvision.transforms.RandomCrop(
+                            (1, 1),
+                            padding=None,
+                            pad_if_needed=True,
+                            fill=0,
+                            padding_mode="constant",
+                        ),
+                        torchvision.transforms.ToTensor(),
+                    ]
+                ),
+                transform=torchvision.transforms.Compose(
+                    [
+                        torchvision.transforms.Grayscale(),
+                        torchvision.transforms.RandomCrop(
+                            crop_dim,
+                            padding=None,
+                            pad_if_needed=True,
+                            fill=0,
+                            padding_mode="constant",
+                        ),
+                        torchvision.transforms.ToTensor(),
+                    ]
+                ),
             ),
-        ),
-        batch_size=batch_size,
-        shuffle=shuffle,
-    )
+            batch_size=batch_size,
+            shuffle=shuffle,
+        )
+    else:
+        loader = torch.utils.data.DataLoader(
+            torchvision.datasets.VOCDetection(
+                "../data",
+                year=year,
+                image_set=image_set,
+                download=True,
+                target_transform=None,
+                transform=torchvision.transforms.Compose(
+                    [
+                        torchvision.transforms.Grayscale(),
+                        torchvision.transforms.RandomCrop(
+                            crop_dim,
+                            padding=None,
+                            pad_if_needed=True,
+                            fill=0,
+                            padding_mode="constant",
+                        ),
+                        torchvision.transforms.ToTensor(),
+                    ]
+                ),
+            ),
+            batch_size=batch_size,
+            shuffle=shuffle,
+        )
     return loader
 
-
-def get_lena_loader(batch_size, test_path, shuffle=False):
-    loader = torch.utils.data.DataLoader(
-        torchvision.datasets.ImageFolder(
-            root=test_path,
-            transform=torchvision.transforms.Compose(
-                [torchvision.transforms.Grayscale(), torchvision.transforms.ToTensor()]
+def get_path_loader(batch_size, image_path, shuffle=False, crop_dim=None):
+    if crop_dim is not None:
+        loader = torch.utils.data.DataLoader(
+            torchvision.datasets.ImageFolder(
+                root=image_path,
+                transform=torchvision.transforms.Compose(
+                    [
+                        torchvision.transforms.Grayscale(),
+                        torchvision.transforms.RandomCrop(
+                            crop_dim,
+                            padding=None,
+                            pad_if_needed=True,
+                            fill=0,
+                            padding_mode="constant",
+                        ),
+                        torchvision.transforms.ToTensor(),
+                    ]
+                ),
             ),
-        ),
-        batch_size=1,
-        shuffle=shuffle,
-    )
+            batch_size=batch_size,
+            shuffle=shuffle,
+        )
+    else:
+        loader = torch.utils.data.DataLoader(
+            torchvision.datasets.ImageFolder(
+                root=image_path,
+                transform=torchvision.transforms.Compose(
+                    [
+                        torchvision.transforms.Grayscale(),
+                        torchvision.transforms.ToTensor(),
+                    ]
+                ),
+            ),
+            batch_size=batch_size,
+            shuffle=shuffle,
+        )
     return loader
